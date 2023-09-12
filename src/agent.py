@@ -23,7 +23,7 @@ class SARSAAgent:
             return Action.get_all_actions()[np.random.randint(low=0,high=len(Action.get_all_actions()))]
         x , y = int(self.position[0]) , int(self.position[1])
         indices = np.where(self.q[x,y] == self.q[ x , y].max())[0]
-        action_index = indices[0][0] if len(indices) == 1 else indices[np.random.randint(0 , len(indices))]
+        action_index = indices[0] if len(indices) == 1 else indices[np.random.randint(0 , len(indices))]
         return Action.get_all_actions()[action_index]
             
     

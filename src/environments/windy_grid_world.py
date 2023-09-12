@@ -46,7 +46,7 @@ class WindyGridWorld(Env):
         elif action == Action.LEFT:
             new_position[1] -= 1
         elif action == Action.RIGHT:
-            new_position += 1
+            new_position[1] += 1
         else:
             raise NotImplementedError
         self.current_timestep += 1
@@ -56,7 +56,8 @@ class WindyGridWorld(Env):
         is_invalid = ((action == Action.UP) and (agent.position[0] == 0)) or \
                      ((action == Action.DOWN) and (agent.position[0] >= int(self.world.shape[0] - 1))) or \
                      ((action == Action.LEFT) and (agent.position[1] == 0)) or \
-                     ((action == Action.RIGHT) and (agent.position[1] == int(self.world.shape[1] - 1)))
+                     ((action == Action.RIGHT) and (agent.position[1] >= int(self.world.shape[1] - 1)))
+        # print(agent.position , action , 'is_invalid:' + str(is_invalid))
         return is_invalid
     
     def render(self , agent:SARSAAgent) -> None:

@@ -9,7 +9,7 @@ def main():
                                 alpha= 0.1 ,
                                 discount_rate=1)
     parser = ArgumentParser()
-    parser.add_argument('-t' , '--timesteps' , default=4000 , type=int)
+    parser.add_argument('-t' , '--timesteps' , default=400 , type=int)
     args = parser.parse_args()
     while environment.current_timestep < args.timesteps:
         is_done = False
@@ -20,7 +20,7 @@ def main():
             new_position , reward , is_done , _ , _ = environment.step(agent)
             agent.step(reward , new_position) # updates values and creates new action
             environment.render(agent)
-        environment.create_video()
+    environment.create_video()
     return
 
 if __name__ == "__main__":
