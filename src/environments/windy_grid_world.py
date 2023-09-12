@@ -27,16 +27,15 @@ class WindyGridWorld(Env):
         self.world[self.world == self.world.min()] = -1 # non-terminal states
         self.world[(self.world> -1) * (self.world < 1)] = 0
         self.wind = (np.random.uniform(self.wind.shape) > 0.5).astype(int)
-        return self.agent_start_position # x_0 = 0 , y_0 = 0
+        return self.agent_start_position.copy() # x_0 = 0 , y_0 = 0
     
-    def step(self, agent:SARSAAgent) -> Tuple[Any, float, bool, bool, dict]:
+    def step(self, agent:SARSAAgent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
         if self.invalid_move(action , agent):
             reward = -1
             is_done = False
             return agent.position , reward , is_done , is_done , None
         x , y = int(agent.position[0]) , int(agent.position[1])
-        is_done = self.world[x, y] != 0
         reward = self.world[x, y] * 100 
         new_position = agent.position
         if action == Action.UP:
@@ -50,6 +49,8 @@ class WindyGridWorld(Env):
         else:
             raise NotImplementedError
         self.current_timestep += 1
+        x , y = int(new_position[0]) , int(new_position[1])
+        is_done = (self.world[x, y] != 0) or self.current_timestep >= maximum_timesteps
         return new_position , reward , is_done , None , None
     
     def invalid_move(self , action:Action , agent:SARSAAgent):
