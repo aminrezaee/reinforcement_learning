@@ -12,7 +12,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=1000 , type=int)
     args = parser.parse_args()
-    for i in tqdm(range(args.timesteps)):
+    while environment.current_timestep < args.timesteps:
         is_done = False
         # print("resetting")
         first_position = environment.reset() # s_0
@@ -22,6 +22,7 @@ def main():
         agent.action = agent.act(environment.current_timestep) # returns a new action a_0
         while not is_done:
             new_position , reward , is_done , _ , _ = environment.step(agent , args.timesteps) # r_0
+            print(environment.current_timestep)
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action s_1 , a_1
             environment.render(agent)
     environment.create_video('world')
