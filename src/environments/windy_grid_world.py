@@ -6,9 +6,10 @@ from PIL import Image
 import os
 from agent import SARSAAgent , Action
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+import shutil
 
 class WindyGridWorld(Env):
-    def __init__(self , size , output_path:str , seed=0) -> None:
+    def __init__(self , size , output_path:str , seed=0 , redo=True) -> None:
         super().__init__()
         self.seed = seed
         self.output_path = output_path
@@ -16,7 +17,10 @@ class WindyGridWorld(Env):
         np.random.seed(self.seed)
         self.world:np.ndarray = np.zeros(size) # shows terminal states and rewards
         self.wind:np.ndarray = np.zeros(tuple(list(size) + [4])) # shows wind action
+        self.world_best = None 
         self.agent_start_position = np.zeros(2)
+        if redo:
+            shutil.rmtree(self.output_path)
         os.makedirs(f"{self.output_path}/imgs" , exist_ok=True)
         
         
@@ -26,18 +30,19 @@ class WindyGridWorld(Env):
         self.world[self.world == self.world.max()] = 1 # terminal states
         self.world[self.world == self.world.min()] = -1 # non-terminal states
         self.world[(self.world> -1) * (self.world < 1)] = 0
+        self.world_best = np.where(self.world == 1)
+        self.world_best = np.array([self.world_best[0][0] , self.world_best[1][0]])
         self.wind = (np.random.uniform(self.wind.shape) > 0.5).astype(int)
         return self.agent_start_position.copy() # x_0 = 0 , y_0 = 0
     
     def step(self, agent:SARSAAgent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
         if self.invalid_move(action , agent):
-            reward = -1
+            reward = -5
             is_done = False
+            self.current_timestep += 1
             return agent.position , reward , is_done , is_done , None
-        x , y = int(agent.position[0]) , int(agent.position[1])
-        reward = self.world[x, y] * 100 
-        new_position = agent.position
+        new_position = agent.position.copy()
         if action == Action.UP:
             new_position[0] -= 1
         elif action == Action.DOWN:
@@ -48,9 +53,11 @@ class WindyGridWorld(Env):
             new_position[1] += 1
         else:
             raise NotImplementedError
-        self.current_timestep += 1
         x , y = int(new_position[0]) , int(new_position[1])
+        distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
+        reward = self.world[x, y] * 100 -1 + distance_reward
         is_done = (self.world[x, y] != 0) or self.current_timestep >= maximum_timesteps
+        self.current_timestep += 1
         return new_position , reward , is_done , None , None
     
     def invalid_move(self , action:Action , agent:SARSAAgent):
@@ -62,9 +69,19 @@ class WindyGridWorld(Env):
         return is_invalid
     
     def render(self , agent:SARSAAgent) -> None:
+        self.render_world(agent)
+        return
+    
+
+    def render_world(self,agent:SARSAAgent) -> None:
         x , y = int(agent.position[0]) , int(agent.position[1])
         world_copy = self.world.copy()
         world_copy[x , y] = 3
+        q_world = agent.q.copy()
+        for i in range(len(q_world)):
+            for j in range(len(q_world[0])):
+                quailities = list(np.round(q_world[i][j],decimals=1).astype(str))
+                plt.text(i-0.5, j, f"{' '.join(quailities)}",fontdict={'size': 5})
         plt.imshow(world_copy, cmap='cool')
         plt.grid(True, color='black', linewidth=0.5)
         # Set ticks and labels
@@ -73,9 +90,8 @@ class WindyGridWorld(Env):
         plt.xlabel('Column')
         plt.ylabel('Row')
         np_array = self.get_plot_array()
-        Image.fromarray(np_array).save(f"{self.output_path}/imgs/{self.current_timestep}.png")
-        return 
-    
+        Image.fromarray(np_array).save(f"{self.output_path}/imgs/{self.current_timestep}_world.png") 
+
     def get_plot_array(self):
         canvas = plt.get_current_fig_manager().canvas
         # Update the canvas to render the plot
@@ -85,11 +101,12 @@ class WindyGridWorld(Env):
         plt.clf()
         return plot_array
     
-    def create_video(self):
+    def create_video(self , postfix:str):
         files = os.listdir(f"{self.output_path}/imgs")
-        files = sorted(files, key=lambda x: int(x.split(".")[0]))
+        files = [file_name for file_name in files if postfix in file_name]
+        files = sorted(files, key=lambda x: int(x.split(".")[0].split("_")[0]))
         images = [np.array(Image.open(f"{self.output_path}/imgs/{name}")) for name in files]
-        clip = ImageSequenceClip(images, fps=2)
-        clip.write_videofile(f"{self.output_path}/output.mp4")
+        clip = ImageSequenceClip(images, fps=8)
+        clip.write_videofile(f"{self.output_path}/output_{postfix}.mp4")
         return
 
