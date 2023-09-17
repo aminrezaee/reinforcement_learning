@@ -1,12 +1,7 @@
-from typing import List, Optional, Tuple, Union, Any
-from gym.core import Env, RenderFrame
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-import os
-from agent import SARSAAgent, Action
-from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
-import shutil
+from agent import SARSAAgent
 from .grid_world import GridWorld
 
 class LocalUptimumGridWorld(GridWorld):
