@@ -1,10 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-from agent import SARSAAgent
+from agent import Agent
 from .grid_world import GridWorld
 from matplotlib.colors import ListedColormap , NoNorm
-import matplotlib.colors as mcolors
 
 class LocalUptimumGridWorld(GridWorld):
 
@@ -22,7 +21,7 @@ class LocalUptimumGridWorld(GridWorld):
         self.world_worst = np.array([self.world_worst[0][0], self.world_worst[1][0]])
         return self.agent_start_position.copy()  # x_0 = 0 , y_0 = 0
 
-    def render_world(self, agent: SARSAAgent) -> None:
+    def render_world(self, agent: Agent) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])
         world_copy = self.world.copy()
         world_copy[x, y] = 3

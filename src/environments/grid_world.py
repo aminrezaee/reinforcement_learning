@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image 
 import os
-from agent import SARSAAgent , Action
+from agent import Action , Agent
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 import shutil
 
@@ -39,7 +39,7 @@ class GridWorld(Env):
     def is_done(self, x:int, y:int):
         return ((x == self.world_best[0]) and (y == self.world_best[1])) or ((x == self.world_worst[0]) and (y == self.world_worst[1]))
     
-    def step(self, agent:SARSAAgent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
+    def step(self, agent:Agent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
         if self.invalid_move(action , agent):
             reward = -5
@@ -66,7 +66,7 @@ class GridWorld(Env):
         self.current_timestep += 1
         return new_position , reward , is_done , None , None
     
-    def invalid_move(self , action:Action , agent:SARSAAgent):
+    def invalid_move(self , action:Action , agent:Agent):
         is_invalid = ((action == Action.UP) and (agent.position[0] == 0)) or \
                      ((action == Action.DOWN) and (agent.position[0] >= int(self.world.shape[0] - 1))) or \
                      ((action == Action.LEFT) and (agent.position[1] == 0)) or \
@@ -74,12 +74,12 @@ class GridWorld(Env):
         # print(agent.position , action , 'is_invalid:' + str(is_invalid))
         return is_invalid
     
-    def render(self , agent:SARSAAgent) -> None:
+    def render(self , agent:Agent) -> None:
         self.render_world(agent)
         return
     
 
-    def render_world(self,agent:SARSAAgent) -> None:
+    def render_world(self,agent:Agent) -> None:
         x , y = int(agent.position[0]) , int(agent.position[1])
         world_copy = self.world.copy()
         world_copy[x , y] = 3
