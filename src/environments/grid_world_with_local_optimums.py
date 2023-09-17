@@ -29,7 +29,7 @@ class LocalUptimumGridWorld(GridWorld):
     def step(self, agent:Agent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
         if self.invalid_move(action , agent):
-            reward = -5
+            reward = -5 - min(1.2 ** self.current_timestep_in_episode , 100)
             is_done = False
             self.current_timestep += 1
             return agent.position , reward , is_done , is_done , None
@@ -48,7 +48,7 @@ class LocalUptimumGridWorld(GridWorld):
         distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
         terminal_reached = self.is_done(x,y)
         coefficient = 100 if terminal_reached else 1
-        reward = self.world[x, y] * coefficient - 1.2 ** self.current_timestep_in_episode + distance_reward
+        reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 100) + distance_reward
         is_done = terminal_reached or self.current_timestep >= maximum_timesteps
         self.current_timestep += 1
         self.current_timestep_in_episode += 1
@@ -62,7 +62,7 @@ class LocalUptimumGridWorld(GridWorld):
         plt.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
-                quailities = list(np.round(q_world[i][j], decimals=1).astype(str))
+                quailities = list(q_world[i][j].astype(np.int64).astype(str))
                 delimiter = '   '
                 texts = delimiter.join(quailities[:2]) , delimiter.join(quailities[2:])
                 plt.text(i - 0.5, j, f"{texts[0]} \n {texts[1]}", fontdict={"size": 20} , horizontalalignment='center', verticalalignment='center')

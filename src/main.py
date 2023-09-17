@@ -13,7 +13,7 @@ def main():
                                 alpha= 0.3 ,
                                 discount_rate=1)
     parser = ArgumentParser()
-    parser.add_argument('-t' , '--timesteps' , default=300 , type=int)
+    parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
     args = parser.parse_args()
     reward_sum = 0
     logger = getLogger()
