@@ -3,6 +3,8 @@ from matplotlib import pyplot as plt
 from PIL import Image
 from agent import SARSAAgent
 from .grid_world import GridWorld
+from matplotlib.colors import ListedColormap , NoNorm
+import matplotlib.colors as mcolors
 
 class LocalUptimumGridWorld(GridWorld):
 
@@ -11,14 +13,13 @@ class LocalUptimumGridWorld(GridWorld):
         self.world: np.ndarray = 1 - 2 * np.random.uniform(size=self.world.shape)
         self.world[self.world == self.world.max()] = 2  # terminal states
         self.world[abs(self.world) < 0.1] = 0
-        self.world[self.world > 0] = 1 # local optimum
+        self.world[(self.world > 0) * (self.world < 1.0)] = 1 # local optimum
         self.world[self.world == self.world.min()] = -2  # non-terminal states
-        self.world[self.world < 0] = -1 # local bad state
+        self.world[(self.world < 0) * (self.world > -1.0)] = -1 # local bad state
         self.world_best = np.where(self.world == 2)
         self.world_worst = np.where(self.world == -2)
         self.world_best = np.array([self.world_best[0][0], self.world_best[1][0]])
         self.world_worst = np.array([self.world_worst[0][0], self.world_worst[1][0]])
-        self.wind = (np.random.uniform(self.wind.shape) > 0.5).astype(int)
         return self.agent_start_position.copy()  # x_0 = 0 , y_0 = 0
 
     def render_world(self, agent: SARSAAgent) -> None:
@@ -38,14 +39,15 @@ class LocalUptimumGridWorld(GridWorld):
             "#34eb52",  # green 2 
             "#05b1f5",  # blue (agent) 3
         ]
-        cmap = plt.colors.ListedColormap(colors)
-        plt.imshow(world_copy, cmap=cmap)
+        rgba_colors = [self.hex_to_rgba(color) for color in colors]
+        cmap = ListedColormap(rgba_colors)
         plt.grid(True, color="black", linewidth=0.5)
         # Set ticks and labels
         plt.xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
         plt.yticks(np.arange(0.5, self.world.shape[1], 1), range(self.world.shape[1]))
         plt.xlabel("Column")
         plt.ylabel("Row")
+        plt.imshow((world_copy -world_copy.min()).astype(np.uint8), cmap=cmap , norm=NoNorm())
         np_array = self.get_plot_array()
         Image.fromarray(np_array).save(
             f"{self.output_path}/imgs/{self.current_timestep}_world.png"

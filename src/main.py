@@ -16,8 +16,8 @@ def main():
     parser.add_argument('-t' , '--timesteps' , default=300 , type=int)
     args = parser.parse_args()
     reward_sum = 0
-    logger = getLogger(logging.DEBUG)
-    logger.setLevel(logger)
+    logger = getLogger()
+    logger.setLevel(logging.ERROR)
     reward = 0
     while environment.current_timestep < args.timesteps:
         is_done = False

@@ -89,6 +89,7 @@ class GridWorld(Env):
                 quailities = list(np.round(q_world[i][j],decimals=1).astype(str))
                 plt.text(i-0.5, j, f"{' '.join(quailities)}",fontdict={'size': 5})
         plt.imshow(world_copy, cmap='cool')
+        plt.colorbar()
         plt.grid(True, color='black', linewidth=0.5)
         # Set ticks and labels
         plt.xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
@@ -115,4 +116,18 @@ class GridWorld(Env):
         clip = ImageSequenceClip(images, fps=8)
         clip.write_videofile(f"{self.output_path}/output_{postfix}.mp4")
         return
+    
+    def hex_to_rgba(self, hex_color:str) -> Tuple:
+        # Remove the "#" symbol if present
+        hex_color = hex_color.lstrip("#")
+        
+        # Convert the hexadecimal color code to decimal values
+        red = int(hex_color[0:2], 16)
+        green = int(hex_color[2:4], 16)
+        blue = int(hex_color[4:6], 16)
+        
+        # Convert the decimal values to the RGBA format
+        rgba_color = np.array([red, green, blue, 255])
+    
+        return rgba_color/255
 

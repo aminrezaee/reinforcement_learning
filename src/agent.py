@@ -40,7 +40,7 @@ class Agent:
         action_index = indices[0] if len(indices) == 1 else indices[np.random.randint(0 , len(indices))]
         return Action.get_all_actions()[action_index]
     
-    def _act(self , new_position:np.ndarray , current_timestep:int , choose_next_action:True) -> Tuple[int , int , int , int , Optional[Tuple[Action , None]]]:
+    def _act(self , new_position:np.ndarray , current_timestep:int , choose_next_action:bool = True) -> Tuple[int , int , int , int , Optional[Tuple[Action , None]]]:
         x_0 , y_0 = int(self.position[0]) , int(self.position[1]) # s_0
         x_1 , y_1 = int(new_position[0]) , int(new_position[1]) # s_1
         self.position = new_position
@@ -58,7 +58,7 @@ class SARSAAgent(Agent):
             
     
     def step(self, reward:int , new_position:np.ndarray , current_timestep:int) -> None:
-        x_0 , x_1 , y_0 , y_1 , new_action:Action = self._act(new_position , current_timestep)
+        x_0 , x_1 , y_0 , y_1 , new_action = self._act(new_position , current_timestep)
         self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
             reward + self.discount_rate * (self.q[y_1 , x_1 , new_action.value] - self.q[y_0 , x_0 , self.action.value]))
         self.action = new_action
