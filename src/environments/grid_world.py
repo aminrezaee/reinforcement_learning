@@ -22,6 +22,7 @@ class GridWorld(Env):
         if redo:
             shutil.rmtree(self.output_path)
         os.makedirs(f"{self.output_path}/imgs" , exist_ok=True)
+        self.fig , self.ax = plt.subplots(figsize=(2*size[0] , 2*size[1]))
         
         
     def reset(self):
@@ -84,32 +85,32 @@ class GridWorld(Env):
         world_copy = self.world.copy()
         world_copy[x , y] = 3
         q_world = agent.q.copy()
-        plt.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
+        self.ax.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
                 quailities = list(np.round(q_world[i][j],decimals=1).astype(str))
                 delimiter = '   '
                 texts = delimiter.join(quailities[:2]) , delimiter.join(quailities[2:])
-                plt.text(i - 0.5, j, f"{texts[0]} \n {texts[1]}", fontdict={"size": 20} , horizontalalignment='center', verticalalignment='center')
+                self.ax.text(i - 0.5, j, f"{texts[0]} \n {texts[1]}", fontdict={"size": 20} , horizontalalignment='center', verticalalignment='center')
 
-        plt.imshow(world_copy, cmap='cool')
-        plt.colorbar()
-        plt.grid(True, color='black', linewidth=0.5)
+        self.ax.imshow(world_copy, cmap='cool')
+        self.ax.colorbar()
+        self.ax.grid(True, color='black', linewidth=0.5)
         # Set ticks and labels
-        plt.xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
-        plt.yticks(np.arange(0.5, self.world.shape[1], 1), range(self.world.shape[1]))
-        plt.xlabel('Column')
-        plt.ylabel('Row')
+        self.ax.xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
+        self.ax.yticks(np.arange(0.5, self.world.shape[1], 1), range(self.world.shape[1]))
+        self.ax.xlabel('Column')
+        self.ax.ylabel('Row')
         np_array = self.get_plot_array()
         Image.fromarray(np_array).save(f"{self.output_path}/imgs/{self.current_timestep}_world.png") 
 
     def get_plot_array(self):
-        canvas = plt.get_current_fig_manager().canvas
+        canvas = self.ax.figure.canvas.manager.canvas
         # Update the canvas to render the plot
         canvas.draw()
         # Convert the plot to a 2D NumPy array
         plot_array = np.array(canvas.renderer.buffer_rgba())
-        plt.clf()
+        self.ax.cla()
         return plot_array
     
     def create_video(self , postfix:str):

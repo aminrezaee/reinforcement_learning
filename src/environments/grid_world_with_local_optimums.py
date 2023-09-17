@@ -48,7 +48,7 @@ class LocalUptimumGridWorld(GridWorld):
         distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
         terminal_reached = self.is_done(x,y)
         coefficient = 100 if terminal_reached else 1
-        reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 100) + distance_reward
+        reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 30) + distance_reward
         is_done = terminal_reached or self.current_timestep >= maximum_timesteps
         self.current_timestep += 1
         self.current_timestep_in_episode += 1
@@ -59,13 +59,12 @@ class LocalUptimumGridWorld(GridWorld):
         world_copy = self.world.copy()
         world_copy[x, y] = 3
         q_world = agent.q.copy()
-        plt.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
                 quailities = list(q_world[i][j].astype(np.int64).astype(str))
                 delimiter = '   '
                 texts = delimiter.join(quailities[:2]) , delimiter.join(quailities[2:])
-                plt.text(i - 0.5, j, f"{texts[0]} \n {texts[1]}", fontdict={"size": 20} , horizontalalignment='center', verticalalignment='center')
+                self.ax.text(i - 0.5, j, f"{texts[0]} \n{texts[1]}", fontdict={"size": 20} , verticalalignment='center')
         colors = [
             "#f50505",  # red -2
             "#f54d05",  # orange -1
@@ -76,13 +75,13 @@ class LocalUptimumGridWorld(GridWorld):
         ]
         rgba_colors = [self.hex_to_rgba(color) for color in colors]
         cmap = ListedColormap(rgba_colors)
-        plt.grid(True, color="black", linewidth=0.5)
+        self.ax.grid(True, color="black", linewidth=0.5)
         # Set ticks and labels
-        plt.xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
-        plt.yticks(np.arange(0.5, self.world.shape[1], 1), range(self.world.shape[1]))
-        plt.xlabel("Column")
-        plt.ylabel("Row")
-        plt.imshow((world_copy -world_copy.min()).astype(np.uint8), cmap=cmap , norm=NoNorm())
+        self.ax.set_xticks(np.arange(0.5, self.world.shape[0], 1), range(self.world.shape[0]))
+        self.ax.set_yticks(np.arange(0.5, self.world.shape[1], 1), range(self.world.shape[1]))
+        self.ax.set_xlabel("Column")
+        self.ax.set_ylabel("Row")
+        self.ax.imshow((world_copy -world_copy.min()).astype(np.uint8), cmap=cmap , norm=NoNorm())
         np_array = self.get_plot_array()
         Image.fromarray(np_array).save(
             f"{self.output_path}/imgs/{self.current_timestep}_world.png"
