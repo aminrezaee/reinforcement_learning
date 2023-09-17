@@ -16,7 +16,8 @@ class GridWorld(Env):
         self.current_timestep = 0
         np.random.seed(self.seed)
         self.world:np.ndarray = np.zeros(size) # shows terminal states and rewards
-        self.world_best = None 
+        self.world_best = None
+        self.world_worst = None
         self.agent_start_position = np.zeros(2)
         if redo:
             shutil.rmtree(self.output_path)
@@ -31,7 +32,12 @@ class GridWorld(Env):
         self.world[(self.world> -1) * (self.world < 1)] = 0
         self.world_best = np.where(self.world == 1)
         self.world_best = np.array([self.world_best[0][0] , self.world_best[1][0]])
+        self.world_worst = np.where(self.world == -1)
+        self.world_worst = np.array([self.world_worst[0][0], self.world_worst[1][0]])
         return self.agent_start_position.copy() # x_0 = 0 , y_0 = 0
+    
+    def is_done(self, x:int, y:int):
+        return ((x == self.world_best[0]) and (y == self.world_best[1])) or ((x == self.world_worst[0]) and (y == self.world_worst[1]))
     
     def step(self, agent:SARSAAgent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
@@ -53,8 +59,10 @@ class GridWorld(Env):
             raise NotImplementedError
         x , y = int(new_position[0]) , int(new_position[1])
         distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
-        reward = self.world[x, y] * 100 -1 + distance_reward
-        is_done = (self.world[x, y] != 0) or self.current_timestep >= maximum_timesteps
+        terminal_reached = self.is_done(x,y)
+        coefficient = 100 if terminal_reached else 1
+        reward = self.world[x, y] * coefficient - 1 + distance_reward
+        is_done = terminal_reached or self.current_timestep >= maximum_timesteps
         self.current_timestep += 1
         return new_position , reward , is_done , None , None
     
