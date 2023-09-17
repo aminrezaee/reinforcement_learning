@@ -8,7 +8,7 @@ from agent import SARSAAgent , Action
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 import shutil
 
-class WindyGridWorld(Env):
+class GridWorld(Env):
     def __init__(self , size , output_path:str , seed=0 , redo=True) -> None:
         super().__init__()
         self.seed = seed
@@ -16,7 +16,6 @@ class WindyGridWorld(Env):
         self.current_timestep = 0
         np.random.seed(self.seed)
         self.world:np.ndarray = np.zeros(size) # shows terminal states and rewards
-        self.wind:np.ndarray = np.zeros(tuple(list(size) + [4])) # shows wind action
         self.world_best = None 
         self.agent_start_position = np.zeros(2)
         if redo:
@@ -32,7 +31,6 @@ class WindyGridWorld(Env):
         self.world[(self.world> -1) * (self.world < 1)] = 0
         self.world_best = np.where(self.world == 1)
         self.world_best = np.array([self.world_best[0][0] , self.world_best[1][0]])
-        self.wind = (np.random.uniform(self.wind.shape) > 0.5).astype(int)
         return self.agent_start_position.copy() # x_0 = 0 , y_0 = 0
     
     def step(self, agent:SARSAAgent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
