@@ -84,10 +84,14 @@ class GridWorld(Env):
         world_copy = self.world.copy()
         world_copy[x , y] = 3
         q_world = agent.q.copy()
+        plt.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
                 quailities = list(np.round(q_world[i][j],decimals=1).astype(str))
-                plt.text(i-0.5, j, f"{' '.join(quailities)}",fontdict={'size': 5})
+                delimiter = '   '
+                texts = delimiter.join(quailities[:2]) , delimiter.join(quailities[2:])
+                plt.text(i - 0.5, j, f"{texts[0]} \n {texts[1]}", fontdict={"size": 20} , horizontalalignment='center', verticalalignment='center')
+
         plt.imshow(world_copy, cmap='cool')
         plt.colorbar()
         plt.grid(True, color='black', linewidth=0.5)
