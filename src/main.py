@@ -1,5 +1,5 @@
 from environments.grid_world_with_local_optimums import LocalUptimumGridWorld as GridWorld
-from agent import SARSAAgent
+from agent import SARSAAgent , ExpectedSARSA , QLearningAgent
 from argparse import ArgumentParser
 from tqdm import tqdm
 from logging import getLogger
@@ -7,7 +7,7 @@ import logging
 
 def main():
     environment = GridWorld((10,10) , output_path='./../outputs')
-    agent = SARSAAgent(environment.agent_start_position , 
+    agent = ExpectedSARSA(environment.agent_start_position , 
                                 environment.world.shape,
                                 epsilon= 0.15,
                                 alpha= 0.5 ,
