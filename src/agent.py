@@ -53,15 +53,31 @@ class Agent:
         return NotImplementedError
     
 class SARSAAgent(Agent):
-    def __init__(self , start_position:np.ndarray , world_map_size:tuple , epsilon = 0.05 , alpha = 0.1 , discount_rate = 1) -> None:
-        super().__init__(start_position , world_map_size , epsilon , alpha , discount_rate)
-            
     
     def step(self, reward:int , new_position:np.ndarray , current_timestep:int) -> None:
         x_0 , x_1 , y_0 , y_1 , new_action = self._act(new_position , current_timestep)
         self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
             reward + self.discount_rate * (self.q[y_1 , x_1 , new_action.value]) - self.q[y_0 , x_0 , self.action.value])
         self.action = new_action
+
+class ExpectedSARSA(Agent):
+    def step(self, reward: int, new_position: np.ndarray, current_timestep: int) -> None:
+        x_0 , x_1 , y_0 , y_1 , new_action = self._act(new_position , current_timestep , choose_next_action=False)
+        values = self.q[y_1 , x_1]
+        action_count = len(values)
+        max_value = values.max()
+        greedy_action_count = sum(self.q == max_value)
+        if greedy_action_count == len(action_count):
+            actions_probabilities = [1/action_count for _ in values]
+        else:
+            greedy_prob = (1 - self.epsilon * ((action_count-1)/(action_count)))/greedy_action_count
+            random_prob = self.epsilon/action_count
+            actions_probabilities = [greedy_prob if value == max_value else random_prob for value in values]
+        mean_q_value  = (np.array(actions_probabilities) * self.q[y_1 , x_1]).sum()
+        self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
+            reward + self.discount_rate * mean_q_value - self.q[y_0 , x_0 , self.action.value])
+        self.action = new_action
+        return 
 
 class QLearningAgent(Agent):
 
