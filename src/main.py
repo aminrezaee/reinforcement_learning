@@ -10,7 +10,7 @@ def main():
     agent = SARSAAgent(environment.agent_start_position , 
                                 environment.world.shape,
                                 epsilon= 0.15,
-                                alpha= 0.3 ,
+                                alpha= 0.5 ,
                                 discount_rate=1)
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
