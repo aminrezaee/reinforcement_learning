@@ -7,7 +7,7 @@ import logging
 
 def main():
     environment = GridWorld((10,10) , output_path='./../outputs')
-    agent = ExpectedSARSA(environment.agent_start_position , 
+    agent = QLearningAgent(environment.agent_start_position , 
                                 environment.world.shape,
                                 epsilon= 0.15,
                                 alpha= 0.5 ,

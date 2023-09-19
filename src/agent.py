@@ -88,3 +88,14 @@ class QLearningAgent(Agent):
         new_action = self.act(current_timestep)
         self.action = new_action
         return    
+    
+class DynaQAgent(Agent):
+    def __init__(self, start_position:np.ndarray , world_map_size:tuple , epsilon = 0.05 , alpha = 0.1 , discount_rate = 1 , model_updates_per_step = 10) -> None:
+        super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
+        self.model_updates_per_step = model_updates_per_step
+        # self.model = 
+
+
+    def update_model(self):
+        return
+
