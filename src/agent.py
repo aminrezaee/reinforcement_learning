@@ -1,6 +1,6 @@
 from logging import getLogger
 import logging
-from typing import Tuple , Optional , List
+from typing import Tuple , Optional , List , Callable
 from models.fully_connected import BaseModel
 from torch.optim import Adam
 from action import Action

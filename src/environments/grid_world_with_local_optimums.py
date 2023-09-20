@@ -34,7 +34,19 @@ class LocalUptimumGridWorld(GridWorld):
             is_done = False
             self.current_timestep += 1
             return agent.position , reward , is_done , is_done , None
-        new_position = agent.position.copy()
+        new_position = self.next_state(action , agent.position)
+        x , y = int(new_position[0]) , int(new_position[1])
+        distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
+        terminal_reached = self.is_done(x,y)
+        coefficient = 100 if terminal_reached else 1
+        reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 30) + distance_reward
+        is_done = terminal_reached or self.current_timestep >= maximum_timesteps
+        self.current_timestep += 1
+        self.current_timestep_in_episode += 1
+        return new_position , reward , is_done , None , None
+    
+    def next_state(self, action:Action , position):
+        new_position = position.copy()
         if action == Action.UP:
             new_position[0] -= 1
         elif action == Action.DOWN:
@@ -45,15 +57,7 @@ class LocalUptimumGridWorld(GridWorld):
             new_position[1] += 1
         else:
             raise NotImplementedError
-        x , y = int(new_position[0]) , int(new_position[1])
-        distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
-        terminal_reached = self.is_done(x,y)
-        coefficient = 100 if terminal_reached else 1
-        reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 30) + distance_reward
-        is_done = terminal_reached or self.current_timestep >= maximum_timesteps
-        self.current_timestep += 1
-        self.current_timestep_in_episode += 1
-        return new_position , reward , is_done , None , None
+        return new_position
 
     def render_world(self, agent: Agent , agent_color:int) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])

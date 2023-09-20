@@ -2,7 +2,7 @@ from torch.nn import Module , ModuleList , Linear , ReLU , Softmax
 from torch import Tensor
 from action import Action
 import numpy as np
-from typing import List
+from typing import List , Callable
 from torch.nn import MSELoss , BCELoss
 class BaseModel(Module):
     def __init__(self , input_size:int , device='cpu') -> None:
@@ -34,6 +34,7 @@ class BaseModel(Module):
         self.states:List[np.ndarray] = [] # state
         self.actions:List[Action] = [] # action 
         self.rewards:List[float] = [] # reward
+        self.next_states:List[np.ndarray] = [] # next_states
 
     def _forward(self, inputs:Tensor):
         rewards = inputs.clone()
@@ -46,9 +47,9 @@ class BaseModel(Module):
 
     def compute_loss(self) -> Tensor:
         self.train()
-        inputs , ground_truth_next_states = self.create_inputs(self.actions , self.states , self.next_states)
-        ground_truth_rewards = Tensor([action.value for action in self.actions])
-        ground_truth_rewards = Tensor([action.value for action in self.actions])
+        inputs = self.create_inputs(self.actions , self.states)
+        ground_truth_rewards = Tensor(self.rewards)
+        ground_truth_next_states = Tensor([state for state in self.next_states])
         reward_predictions , state_predictions = self._forward(inputs)
         reward_loss = MSELoss()(reward_predictions , ground_truth_rewards)
         next_state_loss = BCELoss() (state_predictions , ground_truth_next_states)
@@ -61,7 +62,7 @@ class BaseModel(Module):
     
     def create_inputs(self , batch_actions:List[Action] , batch_states:List[np.ndarray]) -> Tensor:
         input_size = int(len(batch_states[0].reshape(-1)) + 1)
-        data = np.zeros((len(batch_actions , input_size)))
+        data = np.zeros((len(batch_actions) , input_size))
         for i in range(len(batch_actions)):
             item = np.concatenate((batch_states[i] , [batch_actions[i].value]))
             data[i] = item
