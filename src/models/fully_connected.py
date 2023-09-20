@@ -1,6 +1,6 @@
 from torch.nn import Module , ModuleList , Linear , ReLU , Softmax
 from torch import Tensor
-from agent import Action
+from action import Action
 import numpy as np
 from typing import List
 from torch.nn import MSELoss , BCELoss

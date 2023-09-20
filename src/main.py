@@ -7,7 +7,7 @@ import logging
 
 def main():
     environment = GridWorld((10,10) , output_path='./../outputs')
-    agent = QLearningAgent(environment.agent_start_position , 
+    agent = DynaQAgent(environment.agent_start_position , 
                                 environment.world.shape,
                                 epsilon= 0.15,
                                 alpha= 0.5 ,
@@ -15,6 +15,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
     args = parser.parse_args()
+    model_based(environment , agent , args)
     
     
     return
@@ -35,7 +36,7 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
         agent.action = agent.act(environment.current_timestep) # returns a new action a_0
         while not is_done:
             new_position , reward , is_done , _ , _ = environment.step(agent , args.timesteps) # r_0
-            agent.append_observation(agent.position , agent.action , reward) # previous state , last action and the reward
+            agent.append_observation(agent.position , agent.action , reward , new_position) # previous state , last action and the reward
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
@@ -56,8 +57,10 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
             environment.render(agent)
     environment.create_video('world')
 
-def model_free(environment:GridWorld , agent:Agent , args , logger):
+def model_free(environment:GridWorld , agent:Agent , args):
     reward_sum = 0
+    logger = getLogger()
+    logger.setLevel(logging.ERROR)
     while environment.current_timestep < args.timesteps:
         is_done = False
         logging.log(logging.DEBUG , f"resetting:{reward_sum}")

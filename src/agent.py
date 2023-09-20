@@ -1,17 +1,10 @@
-from enum import Enum
 from logging import getLogger
 import logging
 from typing import Tuple , Optional , List
 from models.fully_connected import BaseModel
 from torch.optim import Adam
-class Action(Enum):
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-    @classmethod
-    def get_all_actions(cls):
-        return [Action.UP , Action.DOWN , Action.LEFT , Action.RIGHT]
+from action import Action
+
     
 import numpy as np
 class Agent:
