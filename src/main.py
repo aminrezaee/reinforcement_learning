@@ -40,7 +40,7 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
-                agent.update_model() # update model to be more exact
+                agent.model.update(agent.model_optimizer) # update model to be more exact
                 simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
                 for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
                                                                                                        simulated_actions , 

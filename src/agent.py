@@ -4,6 +4,7 @@ from typing import Tuple , Optional , List , Callable
 from models.fully_connected import BaseModel
 from torch.optim import Adam
 from action import Action
+from torch import Tensor
 
     
 import numpy as np
@@ -89,10 +90,12 @@ class DynaQAgent(Agent):
                  epsilon:float = 0.05 , 
                  alpha:float = 0.1 , 
                  discount_rate:float = 1 , 
-                 learning_rate:float = 1e-4) -> None:
+                 learning_rate:float = 1e-4 , 
+                 simulated_observation_count:int = 10) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
         self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , action_size= self.q.shape[-1])
         self.model_optimizer = Adam(self.model.parameters() , lr=learning_rate)
+        self.simulated_observation_count = simulated_observation_count
 
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
         self.model.states.append(self.get_one_hot(int(state[0] * len(self.q[0]) + state[1]) , self.model.state_size))
@@ -114,7 +117,10 @@ class DynaQAgent(Agent):
         self.action = new_action
         return   
     
-    def create_simulated_observations(self) -> List[Tuple[np.ndarray , Action , float , np.ndarray]]:
-        
-        return
+    def create_simulated_observations(self) -> Tuple[List[np.ndarray] , List[Action] , List[float] , List[np.ndarray]]:
+        indices = np.random.choice(np.arange(self.simulated_observation_count), self.simulated_observation_count, replace=False)
+        states = [self.model.states[index] for index in indices]
+        actions = [self.model.actions[index] for index in indices]
+        rewards , next_states = self.model.predict(states , actions)
+        return states , actions , rewards.tolist() , [next_states[i].numpy() for i in range(len(next_states))]
 
