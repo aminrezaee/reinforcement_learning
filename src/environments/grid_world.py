@@ -75,15 +75,15 @@ class GridWorld(Env):
         # print(agent.position , action , 'is_invalid:' + str(is_invalid))
         return is_invalid
     
-    def render(self , agent:Agent) -> None:
-        self.render_world(agent)
+    def render(self , agent:Agent , agent_color:int = 3) -> None:
+        self.render_world(agent , agent_color)
         return
     
 
-    def render_world(self,agent:Agent) -> None:
+    def render_world(self,agent:Agent , agent_color:int) -> None:
         x , y = int(agent.position[0]) , int(agent.position[1])
         world_copy = self.world.copy()
-        world_copy[x , y] = 3
+        world_copy[x , y] = agent_color
         q_world = agent.q.copy()
         self.ax.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
         for i in range(len(q_world)):

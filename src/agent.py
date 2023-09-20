@@ -1,8 +1,9 @@
 from enum import Enum
 from logging import getLogger
 import logging
-from typing import Tuple , Optional
-
+from typing import Tuple , Optional , List
+from models.fully_connected import BaseModel
+from torch.optim import Adam
 class Action(Enum):
     UP = 0
     DOWN = 1
@@ -90,12 +91,37 @@ class QLearningAgent(Agent):
         return    
     
 class DynaQAgent(Agent):
-    def __init__(self, start_position:np.ndarray , world_map_size:tuple , epsilon = 0.05 , alpha = 0.1 , discount_rate = 1 , model_updates_per_step = 10) -> None:
+    def __init__(self, start_position:np.ndarray , 
+                 world_map_size:tuple , 
+                 epsilon:float = 0.05 , 
+                 alpha:float = 0.1 , 
+                 discount_rate:float = 1 , 
+                 learning_rate:float = 1e-4) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
-        self.model_updates_per_step = model_updates_per_step
-        # self.model = 
+        self.model = BaseModel(input_size=int(world_map_size[0] * world_map_size[1] + 1))
+        self.model_optimizer = Adam(self.model.parameters() , lr=learning_rate)
 
-
-    def update_model(self):
+    def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
+        self.model.states.append(state)
+        self.model.actions.append(action)
+        self.model.rewards.append(reward)
+        self.model.next_states.append(next_state)
+    
+    def update_model(self)-> None:
+        self.model_optimizer.zero_grad()
+        loss = self.model.compute_loss()
+        loss.backward()
+        self.model_optimizer.step()
+        logging.log(logging.INFO , f"loss:{loss.item()}")
+    
+    def step(self, reward:int , new_position:np.ndarray , current_timestep:int) -> None:
+        x_0 , x_1 , y_0 , y_1 , _ = self._act(new_position , current_timestep)
+        self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
+            reward + self.discount_rate * (self.q[y_1 , x_1].max()) - self.q[y_0 , x_0 , self.action.value])
+        new_action = self.act(current_timestep)
+        self.action = new_action
+        return   
+    
+    def create_simulated_observations(self) -> List[Tuple[np.ndarray , Action , float , np.ndarray]]:
         return
 

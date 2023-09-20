@@ -54,10 +54,10 @@ class LocalUptimumGridWorld(GridWorld):
         self.current_timestep_in_episode += 1
         return new_position , reward , is_done , None , None
 
-    def render_world(self, agent: Agent) -> None:
+    def render_world(self, agent: Agent , agent_color:int) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])
         world_copy = self.world.copy()
-        world_copy[x, y] = 3
+        world_copy[x, y] = agent_color
         q_world = agent.q.copy()
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
@@ -72,6 +72,7 @@ class LocalUptimumGridWorld(GridWorld):
             "#34ebb1",  # light green 1
             "#34eb52",  # green 2 
             "#05b1f5",  # blue (agent) 3
+            "#05f5ed" , # light blue (simulated agent) 4
         ]
         rgba_colors = [self.hex_to_rgba(color) for color in colors]
         cmap = ListedColormap(rgba_colors)
