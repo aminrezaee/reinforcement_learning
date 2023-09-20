@@ -115,5 +115,6 @@ class DynaQAgent(Agent):
         return   
     
     def create_simulated_observations(self) -> List[Tuple[np.ndarray , Action , float , np.ndarray]]:
+        
         return
 

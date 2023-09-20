@@ -7,6 +7,7 @@ from torch.nn import MSELoss , BCELoss
 from torch.optim import Adam
 import logging
 import torch
+from typing import Tuple
 
 class BaseModel(Module):
     def __init__(self , state_size:int , action_size:int , update_batch_count:int , batch_size:int=20 , device='cpu') -> None:
@@ -39,13 +40,13 @@ class BaseModel(Module):
             Softmax()
         ])
 
-    def reset(self):
+    def reset(self) -> None:
         self.states:List[np.ndarray] = [] # state
         self.actions:List[Action] = [] # action 
         self.rewards:List[float] = [] # reward
         self.next_states:List[np.ndarray] = [] # next_states
 
-    def _forward(self, inputs:Tensor):
+    def _forward(self, inputs:Tensor) -> Tuple[Tensor , Tensor]:
         rewards = inputs.clone()
         for layer in self.reward_predictor:
             rewards = layer(rewards)
@@ -74,7 +75,7 @@ class BaseModel(Module):
             logging.getLogger().log(logging.INFO , f"loss:{loss.item()}")
         return 
     
-    def predict(self, batch_actions:List[Action] , batch_states:List[np.ndarray]):
+    def predict(self, batch_actions:List[Action] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
         self.eval()
         inputs = self.create_inputs(batch_actions , batch_states)
         return self.reward_predictor(inputs) , self.next_state_predictor(inputs)
