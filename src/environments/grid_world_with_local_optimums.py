@@ -77,7 +77,7 @@ class LocalUptimumGridWorld(GridWorld):
             "#34ebb1",  # light green 1
             "#34eb52",  # green 2 
             "#05b1f5",  # blue (agent) 3
-            "#05f5ed" , # light blue (simulated agent) 4
+            "#8cd7f5" , # light blue (simulated agent) 4
         ]
         rgba_colors = [self.hex_to_rgba(color) for color in colors]
         cmap = ListedColormap(rgba_colors)

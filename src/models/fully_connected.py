@@ -5,8 +5,11 @@ import numpy as np
 from typing import List , Callable
 from torch.nn import MSELoss , BCELoss
 class BaseModel(Module):
-    def __init__(self , input_size:int , device='cpu') -> None:
+    def __init__(self , state_size:int , action_size , device='cpu') -> None:
         super().__init__()
+        self.state_size = state_size
+        self.action_size = action_size
+        input_size = int(state_size + action_size)
         self.states:List[np.ndarray] = [] # state
         self.actions:List[Action] = [] # action 
         self.rewards:List[float] = [] # reward
@@ -26,7 +29,7 @@ class BaseModel(Module):
             ReLU() , 
             Linear(in_features=int(input_size/2) , out_features= int(input_size/2)) , 
             ReLU() , 
-            Linear(in_features= int(input_size/2) , out_features=input_size) , 
+            Linear(in_features= int(input_size/2) , out_features=state_size) , 
             Softmax()
         ])
 
@@ -60,11 +63,7 @@ class BaseModel(Module):
         inputs = self.create_inputs(batch_actions , batch_states)
         return self.decider(inputs)
     
-    def create_inputs(self , batch_actions:List[Action] , batch_states:List[np.ndarray]) -> Tensor:
-        input_size = int(len(batch_states[0].reshape(-1)) + 1)
-        data = np.zeros((len(batch_actions) , input_size))
-        for i in range(len(batch_actions)):
-            item = np.concatenate((batch_states[i] , [batch_actions[i].value]))
-            data[i] = item
+    def create_inputs(self , batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tensor:
+        data = np.concatenate((batch_states , batch_actions) , axis=1)
         inputs = Tensor(data , device=self.device)
         return inputs

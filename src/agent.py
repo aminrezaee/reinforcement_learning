@@ -91,14 +91,20 @@ class DynaQAgent(Agent):
                  discount_rate:float = 1 , 
                  learning_rate:float = 1e-4) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
-        self.model = BaseModel(input_size=int(world_map_size[0] * world_map_size[1] + 1))
+        self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , action_size= self.q.shape[-1])
         self.model_optimizer = Adam(self.model.parameters() , lr=learning_rate)
 
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
-        self.model.states.append(state)
-        self.model.actions.append(action)
+        self.model.states.append(self.get_one_hot(int(state[0] * len(self.q[0]) + state[1]) , self.model.state_size))
+        self.model.actions.append(self.get_one_hot(action.value , self.model.action_size))
         self.model.rewards.append(reward)
-        self.model.next_states.append(next_state)
+        self.model.next_states.append(self.get_one_hot(int(next_state[0] * len(self.q[0]) + next_state[1]), self.model.state_size))
+
+
+    def get_one_hot(self, index , length):
+        onehot = np.zeros(length).astype(np.int64)
+        onehot[index] = 1
+        return onehot
     
     def update_model(self)-> None:
         self.model_optimizer.zero_grad()
