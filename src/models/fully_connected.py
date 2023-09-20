@@ -2,13 +2,19 @@ from torch.nn import Module , ModuleList , Linear , ReLU , Softmax
 from torch import Tensor
 from action import Action
 import numpy as np
-from typing import List , Callable
+from typing import List
 from torch.nn import MSELoss , BCELoss
+from torch.optim import Adam
+import logging
+import torch
+
 class BaseModel(Module):
-    def __init__(self , state_size:int , action_size , device='cpu') -> None:
+    def __init__(self , state_size:int , action_size:int , update_batch_count:int , batch_size:int=20 , device='cpu') -> None:
         super().__init__()
         self.state_size = state_size
         self.action_size = action_size
+        self.update_batch_count = update_batch_count
+        self.batch_size = batch_size
         input_size = int(state_size + action_size)
         self.states:List[np.ndarray] = [] # state
         self.actions:List[Action] = [] # action 
@@ -48,20 +54,30 @@ class BaseModel(Module):
             states = layer(states)
         return rewards , states
 
-    def compute_loss(self) -> Tensor:
+    def update(self , optimizer:Adam) -> Tensor:
         self.train()
         inputs = self.create_inputs(self.actions , self.states)
         ground_truth_rewards = Tensor(self.rewards)
         ground_truth_next_states = Tensor([state for state in self.next_states])
-        reward_predictions , state_predictions = self._forward(inputs)
-        reward_loss = MSELoss()(reward_predictions , ground_truth_rewards)
-        next_state_loss = BCELoss() (state_predictions , ground_truth_next_states)
-        return reward_loss + next_state_loss
+        for i in range(self.update_batch_count):
+            indices = torch.randperm(len(inputs))[:self.batch_size]
+            batch_inputs = inputs[indices]
+            batch_ground_truth_rewards = ground_truth_rewards[indices]
+            batch_ground_truth_next_states = ground_truth_next_states[indices]
+            optimizer.zero_grad()
+            reward_predictions , state_predictions = self._forward(batch_inputs)
+            reward_loss:Tensor = MSELoss()(reward_predictions , batch_ground_truth_rewards)
+            next_state_loss:Tensor = BCELoss() (state_predictions , batch_ground_truth_next_states)
+            loss = reward_loss + next_state_loss
+            loss.backward()
+            optimizer.step()
+            logging.getLogger().log(logging.INFO , f"loss:{loss.item()}")
+        return 
     
     def predict(self, batch_actions:List[Action] , batch_states:List[np.ndarray]):
         self.eval()
         inputs = self.create_inputs(batch_actions , batch_states)
-        return self.decider(inputs)
+        return self.reward_predictor(inputs) , self.next_state_predictor(inputs)
     
     def create_inputs(self , batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tensor:
         data = np.concatenate((batch_states , batch_actions) , axis=1)

@@ -106,13 +106,6 @@ class DynaQAgent(Agent):
         onehot[index] = 1
         return onehot
     
-    def update_model(self)-> None:
-        self.model_optimizer.zero_grad()
-        loss = self.model.compute_loss()
-        loss.backward()
-        self.model_optimizer.step()
-        logging.log(logging.INFO , f"loss:{loss.item()}")
-    
     def step(self, reward:int , new_position:np.ndarray , current_timestep:int) -> None:
         x_0 , x_1 , y_0 , y_1 , _ = self._act(new_position , current_timestep)
         self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
