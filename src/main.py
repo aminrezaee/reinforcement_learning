@@ -5,6 +5,9 @@ from tqdm import tqdm
 from logging import getLogger
 import logging
 
+logger = getLogger()
+logger.setLevel(logging.INFO)
+
 def main():
     environment = GridWorld((5,5) , output_path='./../outputs')
     agent = DynaQAgent(environment.agent_start_position , 
@@ -24,8 +27,6 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
     reward = 0
     reward_sum = 0
     current_episode = 0
-    logger = getLogger()
-    logger.setLevel(logging.ERROR)
     while environment.current_timestep < args.timesteps:
         is_done = False
         logging.log(logging.DEBUG , f"resetting:{reward_sum}")
@@ -49,7 +50,6 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
                     agent.position = simulated_state
                     agent.action = simulated_action
                     agent.step(simulated_reward , simulated_new_state , environment.current_timestep_in_episode)
-                    environment.render(agent , agent_color=4)
             if is_done:
                 reward_sum += reward 
                 current_episode += 1
@@ -59,8 +59,6 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
 
 def model_free(environment:GridWorld , agent:Agent , args):
     reward_sum = 0
-    logger = getLogger()
-    logger.setLevel(logging.ERROR)
     while environment.current_timestep < args.timesteps:
         is_done = False
         logging.log(logging.DEBUG , f"resetting:{reward_sum}")

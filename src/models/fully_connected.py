@@ -73,12 +73,15 @@ class BaseModel(Module):
             loss.backward()
             optimizer.step()
             logging.getLogger().log(logging.INFO , f"loss:{loss.item()}")
+            logging.getLogger().log(logging.INFO , f"reward_loss:{reward_loss.item()}")
+            logging.getLogger().log(logging.INFO , f"next_state_loss:{next_state_loss.item()}")
         return 
     
-    def predict(self, batch_actions:List[Action] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
+    def predict(self, batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
         self.eval()
-        inputs = self.create_inputs(batch_actions , batch_states)
-        return self.reward_predictor(inputs) , self.next_state_predictor(inputs)
+        with torch.no_grad():
+            inputs = self.create_inputs(batch_actions , batch_states)
+            return self._forward(inputs)
     
     def create_inputs(self , batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tensor:
         data = np.concatenate((batch_states , batch_actions) , axis=1)

@@ -36,7 +36,7 @@ class LocalUptimumGridWorld(GridWorld):
             return agent.position , reward , is_done , is_done , None
         new_position = self.next_state(action , agent.position)
         x , y = int(new_position[0]) , int(new_position[1])
-        distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
+        distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - np.argmax(new_position)))
         terminal_reached = self.is_done(x,y)
         coefficient = 100 if terminal_reached else 1
         reward = self.world[x, y] * coefficient - min(1.2 ** self.current_timestep_in_episode , 30) + distance_reward
