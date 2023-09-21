@@ -95,10 +95,10 @@ class DynaQAgent(Agent):
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
         self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , 
                                action_size= self.q.shape[-1] , 
-                               update_batch_count=5, 
+                               update_batch_count=10, 
                                batch_size=20)
         self.state_optimizer = Adam(self.model.next_state_predictor.parameters() , lr=learning_rate)
-        self.reward_optimizer = Adam(self.model.reward_predictor.parameters() , lr=1e-6)
+        self.reward_optimizer = Adam(self.model.reward_predictor.parameters() , lr=1e-3)
         self.simulated_observation_count = simulated_observation_count
 
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
