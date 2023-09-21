@@ -3,7 +3,7 @@ from torch import Tensor
 from action import Action
 import numpy as np
 from typing import List
-from torch.nn import MSELoss , BCELoss
+from torch.nn import MSELoss , BCELoss , L1Loss
 from torch.optim import Adam
 import logging
 import torch
@@ -24,8 +24,6 @@ class BaseModel(Module):
         self.device = device
         self.reward_predictor = ModuleList(modules=[
             Linear(in_features=input_size , out_features= int(input_size/2)) , 
-            ReLU() , 
-            Linear(in_features=int(input_size/2) , out_features= int(input_size/2)) , 
             ReLU() , 
             Linear(in_features=int(input_size/2) , out_features= int(input_size/4)) , 
             ReLU() , 
@@ -68,7 +66,7 @@ class BaseModel(Module):
             state_optimizer.zero_grad()
             reward_optimizer.zero_grad()
             reward_predictions , state_predictions = self._forward(batch_inputs)
-            reward_loss:Tensor = MSELoss()(reward_predictions , batch_ground_truth_rewards)
+            reward_loss:Tensor = L1Loss()(reward_predictions , batch_ground_truth_rewards)
             next_state_loss:Tensor = BCELoss() (state_predictions , batch_ground_truth_next_states)
             loss = reward_loss + next_state_loss
             reward_loss.backward()
@@ -77,7 +75,7 @@ class BaseModel(Module):
             state_optimizer.step()
             loss_text = f"loss:{round(loss.item() , ndigits=3)} reward_loss:{round(reward_loss.item() , ndigits=3)} next_state_loss:{round(next_state_loss.item(),ndigits=3)}"
             logging.getLogger().log(logging.INFO , loss_text)
-        return 
+        return loss
     
     def predict(self, batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
         self.eval()

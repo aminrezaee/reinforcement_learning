@@ -41,15 +41,16 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
-                agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
-                simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
-                for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
-                                                                                                       simulated_actions , 
-                                                                                                       simulated_rewards , 
-                                                                                                       simulated_new_states):
-                    agent.position = simulated_state
-                    agent.action = simulated_action
-                    agent.step(simulated_reward , simulated_new_state , environment.current_timestep_in_episode)
+                loss = agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
+                if abs(loss.item()) < 5:
+                    simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
+                    for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
+                                                                                                        simulated_actions , 
+                                                                                                        simulated_rewards , 
+                                                                                                        simulated_new_states):
+                        agent.position = simulated_state
+                        agent.action = simulated_action
+                        agent.step(simulated_reward , simulated_new_state , environment.current_timestep_in_episode)
             if is_done:
                 reward_sum += reward 
                 current_episode += 1
