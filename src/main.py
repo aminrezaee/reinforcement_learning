@@ -42,7 +42,7 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
                 loss = agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
-                if abs(loss.item()) < 5:
+                if abs(loss.item()) < 0.01:
                     simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
                     for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
                                                                                                         simulated_actions , 

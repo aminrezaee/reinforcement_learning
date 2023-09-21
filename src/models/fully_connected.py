@@ -75,7 +75,7 @@ class BaseModel(Module):
             state_optimizer.step()
             loss_text = f"loss:{round(loss.item() , ndigits=3)} reward_loss:{round(reward_loss.item() , ndigits=3)} next_state_loss:{round(next_state_loss.item(),ndigits=3)}"
             logging.getLogger().log(logging.INFO , loss_text)
-        return loss
+        return next_state_loss
     
     def predict(self, batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
         self.eval()
