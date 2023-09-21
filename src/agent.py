@@ -90,24 +90,40 @@ class DynaQAgent(Agent):
                  epsilon:float = 0.05 , 
                  alpha:float = 0.1 , 
                  discount_rate:float = 1 , 
-                 learning_rate:float = 1e-4 , 
+                 learning_rate:float = 1e-3 , 
                  simulated_observation_count:int = 10) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
-        self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , action_size= self.q.shape[-1])
-        self.model_optimizer = Adam(self.model.parameters() , lr=learning_rate)
+        self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , 
+                               action_size= self.q.shape[-1] , 
+                               update_batch_count=100, 
+                               batch_size=20)
+        self.state_optimizer = Adam(self.model.next_state_predictor.parameters() , lr=learning_rate)
+        self.reward_optimizer = Adam(self.model.reward_predictor.parameters() , lr=1e-6)
         self.simulated_observation_count = simulated_observation_count
 
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
         self.model.states.append(self.get_one_hot(int(state[0] * len(self.q[0]) + state[1]) , self.model.state_size))
+        if len(self.model.states) > 100:
+            self.model.states = self.model.states[-100:] 
         self.model.actions.append(self.get_one_hot(action.value , self.model.action_size))
+        if len(self.model.actions) > 100:
+            self.model.actions = self.model.actions[-100:] 
         self.model.rewards.append(reward)
+        if len(self.model.rewards) > 100:
+            self.model.rewards = self.model.rewards[-100:] 
         self.model.next_states.append(self.get_one_hot(int(next_state[0] * len(self.q[0]) + next_state[1]), self.model.state_size))
+        if len(self.model.next_states) > 100:
+            self.model.next_states = self.model.next_states[-100:] 
 
 
     def get_one_hot(self, index , length):
         onehot = np.zeros(length).astype(np.int64)
         onehot[index] = 1
         return onehot
+    
+    def get_position(self , prediction:np.ndarray):
+        index = np.argmax(prediction)
+        return  np.array([int(index/self.q.shape[1]) , int(index % self.q.shape[1])])
     
     def step(self, reward:int , new_position:np.ndarray , current_timestep:int) -> None:
         x_0 , x_1 , y_0 , y_1 , _ = self._act(new_position , current_timestep)
@@ -121,6 +137,8 @@ class DynaQAgent(Agent):
         indices = np.random.choice(np.arange(self.simulated_observation_count), self.simulated_observation_count, replace=False)
         states = [self.model.states[index] for index in indices]
         actions = [self.model.actions[index] for index in indices]
-        rewards , next_states = self.model.predict(states , actions)
-        return states , actions , rewards.tolist() , [next_states[i].numpy() for i in range(len(next_states))]
+        rewards , next_states = self.model.predict(actions , states)
+        states = [self.get_position(states[i]) for i in range(len(states))]
+        next_states = [self.get_position(next_states[i].numpy()) for i in range(len(next_states))]
+        return  states , [Action.get_all_actions()[np.argmax(action)] for action in actions] , rewards.tolist() , next_states
 

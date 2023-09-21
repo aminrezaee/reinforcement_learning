@@ -37,11 +37,11 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
         agent.action = agent.act(environment.current_timestep) # returns a new action a_0
         while not is_done:
             new_position , reward , is_done , _ , _ = environment.step(agent , args.timesteps) # r_0
-            agent.append_observation(agent.position , agent.action , reward , new_position) # previous state , last action and the reward
+            agent.append_observation(agent.position , agent.action , reward + agent.discount_rate * agent.q[int(new_position[0]) , int(new_position[1])].max() , new_position) # previous state , last action and the reward
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
-                agent.model.update(agent.model_optimizer) # update model to be more exact
+                agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
                 simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
                 for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
                                                                                                        simulated_actions , 
