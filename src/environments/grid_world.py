@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image 
 import os
-from agent import Action , Agent
+from agents.agent import Action , Agent
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 import shutil
 

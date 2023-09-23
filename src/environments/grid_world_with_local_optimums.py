@@ -2,7 +2,7 @@ from typing import Any, Tuple
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-from agent import Agent
+from agents.agent import Agent
 from action import Action
 from .grid_world import GridWorld
 from matplotlib.colors import ListedColormap , NoNorm
