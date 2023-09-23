@@ -2,7 +2,7 @@ from torch.nn import Module , ModuleList , Linear , ReLU , Softmax , Sigmoid
 from torch import Tensor
 from action import Action
 import numpy as np
-from typing import List
+from typing import List , Dict
 from torch.nn import MSELoss , BCELoss , L1Loss
 from torch.optim import Adam
 import logging
@@ -17,10 +17,9 @@ class BaseModel(Module):
         self.update_batch_count = update_batch_count
         self.batch_size = batch_size
         input_size = int(state_size + action_size)
-        self.states:List[np.ndarray] = [] # state
-        self.actions:List[Action] = [] # action 
-        self.rewards:List[float] = [] # reward
-        self.next_states:List[np.ndarray] = [] # next_states
+        self.data:Dict[int, # state
+                       Dict[Action, # action
+                            Tuple[int , float]]] = {} # next_state , reward
         self.device = device
         self.reward_predictor = ModuleList(modules=[
             Linear(in_features=input_size , out_features= int(input_size/2)) , 
@@ -39,10 +38,30 @@ class BaseModel(Module):
         ])
 
     def reset(self) -> None:
-        self.states:List[np.ndarray] = [] # state
-        self.actions:List[Action] = [] # action 
-        self.rewards:List[float] = [] # reward
-        self.next_states:List[np.ndarray] = [] # next_states
+        self.data:Dict[int, # state
+                       Dict[Action, # action
+                            Tuple[int , float]]] = {} # next_state , reward
+        
+    def get_one_hot(self, index , length):
+        onehot = np.zeros(length).astype(np.int64)
+        onehot[index] = 1
+        return onehot
+    
+    def unfold_data(self) -> Tuple[List[np.ndarray], List[np.ndarray], List[float], List[np.ndarray]]:
+        state_indices = self.data.keys()
+        states = []
+        actions = []
+        rewards = []
+        next_states = []
+        total_actions = Action.get_all_actions()
+        for index in state_indices:
+            for action in total_actions:
+                if action in self.data[index].keys():
+                    states.append(self.get_one_hot(index , self.state_size))
+                    actions.append(self.get_one_hot(action.value , self.action_size))
+                    rewards.append(self.data[index][action][1])
+                    next_states.append(self.get_one_hot(self.data[index][action][0] , self.state_size))
+        return states , actions , rewards , next_states
 
     def _forward(self, inputs:Tensor) -> Tuple[Tensor , Tensor]:
         rewards = inputs.clone()
@@ -55,9 +74,10 @@ class BaseModel(Module):
 
     def update(self , state_optimizer:Adam , reward_optimizer:Adam) -> Tensor:
         self.train()
-        inputs = self.create_inputs(self.actions , self.states)
-        ground_truth_rewards = Tensor(self.rewards)
-        ground_truth_next_states = Tensor([state for state in self.next_states])
+        states , actions , rewards , next_states = self.unfold_data()
+        inputs = self.create_inputs(actions , states)
+        ground_truth_rewards = Tensor(rewards)
+        ground_truth_next_states = Tensor([state for state in next_states])
         for i in range(self.update_batch_count):
             indices = torch.randperm(len(inputs))[:self.batch_size]
             batch_inputs = inputs[indices]
