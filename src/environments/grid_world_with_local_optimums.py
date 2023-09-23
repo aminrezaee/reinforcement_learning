@@ -1,11 +1,14 @@
 from typing import Any, Tuple
+
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib.colors import ListedColormap, NoNorm
 from PIL import Image
-from agents.agent import Agent
+
 from action import Action
+from agents.agent import Agent
+
 from .grid_world import GridWorld
-from matplotlib.colors import ListedColormap , NoNorm
+
 
 class LocalUptimumGridWorld(GridWorld):
     def __init__(self, size, output_path: str, seed=0, redo=True) -> None:

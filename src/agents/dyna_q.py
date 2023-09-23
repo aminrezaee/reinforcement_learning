@@ -1,11 +1,13 @@
-from logging import getLogger
-import logging
-from typing import Tuple , List
-from models.fully_connected import BaseModel
-from torch.optim import Adam
-from action import Action
-from .q_learning import QLearningAgent
+from typing import List, Tuple
+
 import numpy as np
+from torch.optim import Adam
+
+from action import Action
+from models.fully_connected import BaseModel
+
+from .q_learning import QLearningAgent
+
 
 class DynaQAgent(QLearningAgent):
     def __init__(self, start_position:np.ndarray , 

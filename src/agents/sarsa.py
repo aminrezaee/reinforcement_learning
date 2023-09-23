@@ -1,5 +1,7 @@
-from .agent import Agent
 import numpy as np
+
+from .agent import Agent
+
 
 class SARSAAgent(Agent):
     

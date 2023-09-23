@@ -1,13 +1,15 @@
-from torch.nn import Module , ModuleList , Linear , ReLU , Softmax , Sigmoid , BatchNorm1d
-from torch import Tensor
-from action import Action
-import numpy as np
-from typing import List , Dict
-from torch.nn import MSELoss , BCELoss , L1Loss
-from torch.optim import Adam
 import logging
+from typing import Dict, List, Tuple
+
+import numpy as np
 import torch
-from typing import Tuple
+from torch import Tensor
+from torch.nn import (BatchNorm1d, BCELoss, L1Loss, Linear, Module, ModuleList,
+                      ReLU, Softmax)
+from torch.optim import Adam
+
+from action import Action
+
 
 class BaseModel(Module):
     def __init__(self , state_size:int , action_size:int , update_batch_count:int , batch_size:int=20 , device='cpu') -> None:

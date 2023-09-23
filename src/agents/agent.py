@@ -1,10 +1,12 @@
-from logging import getLogger
 import logging
-from typing import Tuple , Optional
+from logging import getLogger
+from typing import Optional, Tuple
+
+import numpy as np
+
 from action import Action
 
-    
-import numpy as np
+
 class Agent:
     def __init__(self, start_position:np.ndarray , world_map_size:tuple , epsilon = 0.05 , alpha = 0.1 , discount_rate = 1) -> None:
         logger = getLogger()

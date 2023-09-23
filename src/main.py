@@ -1,10 +1,11 @@
-from environments.grid_world_with_local_optimums import LocalUptimumGridWorld as GridWorld
-from agents.agent import Agent 
-from agents.dyna_q import DynaQAgent
-from argparse import ArgumentParser , Namespace
-from tqdm import tqdm
-from logging import getLogger
 import logging
+from argparse import ArgumentParser, Namespace
+from logging import getLogger
+
+from agents.agent import Agent
+from agents.dyna_q import DynaQAgent
+from environments.grid_world_with_local_optimums import \
+    LocalUptimumGridWorld as GridWorld
 
 logger = getLogger()
 logger.setLevel(logging.INFO)
