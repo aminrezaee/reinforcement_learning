@@ -1,5 +1,6 @@
 from environments.grid_world_with_local_optimums import LocalUptimumGridWorld as GridWorld
-from agent import SARSAAgent , ExpectedSARSA , QLearningAgent , Agent , DynaQAgent
+from agents.agent import Agent 
+from agents.dyna_q import DynaQAgent
 from argparse import ArgumentParser , Namespace
 from tqdm import tqdm
 from logging import getLogger
@@ -14,7 +15,7 @@ def main():
                                 environment.world.shape,
                                 epsilon= 0.15,
                                 alpha= 0.5 ,
-                                discount_rate=1)
+                                discount_rate=0.8)
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
     args = parser.parse_args()
