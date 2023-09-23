@@ -10,7 +10,7 @@ logger = getLogger()
 logger.setLevel(logging.INFO)
 
 def main():
-    environment = GridWorld((5,5) , output_path='./../outputs')
+    environment = GridWorld((10,10) , output_path='./../outputs')
     agent = DynaQAgent(environment.agent_start_position , 
                                 environment.world.shape,
                                 epsilon= 0.15,
@@ -42,8 +42,8 @@ def model_based(environment:GridWorld , agent:DynaQAgent , args:Namespace):
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
             if current_episode >= 1:
-                loss = agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
-                if abs(loss.item()) < 0.01:
+                reward_loss , next_state_loss = agent.model.update(agent.state_optimizer , agent.reward_optimizer) # update model to be more exact
+                if next_state_loss < 0.02 and reward_loss < 1.0:
                     simulated_states , simulated_actions , simulated_rewards , simulated_new_states = agent.create_simulated_observations()
                     for simulated_state , simulated_action , simulated_reward , simulated_new_state in zip(simulated_states , 
                                                                                                         simulated_actions , 

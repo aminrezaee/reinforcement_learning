@@ -1,4 +1,4 @@
-from torch.nn import Module , ModuleList , Linear , ReLU , Softmax , Sigmoid
+from torch.nn import Module , ModuleList , Linear , ReLU , Softmax , Sigmoid , BatchNorm1d
 from torch import Tensor
 from action import Action
 import numpy as np
@@ -22,10 +22,12 @@ class BaseModel(Module):
                             Tuple[int , float]]] = {} # next_state , reward
         self.device = device
         self.reward_predictor = ModuleList(modules=[
+            BatchNorm1d(num_features=input_size) , 
             Linear(in_features=input_size , out_features= int(input_size/2)) , 
             ReLU() , 
+            BatchNorm1d(num_features=int(input_size/2)) , 
             Linear(in_features=int(input_size/2) , out_features= int(input_size/4)) , 
-            ReLU() , 
+            Linear(in_features=int(input_size/4) , out_features= int(input_size/4)) , 
             Linear(in_features= int(input_size/4) , out_features=1) , 
         ])
         self.next_state_predictor = ModuleList(modules=[
@@ -76,26 +78,30 @@ class BaseModel(Module):
         self.train()
         states , actions , rewards , next_states = self.unfold_data()
         inputs = self.create_inputs(actions , states)
-        ground_truth_rewards = Tensor(rewards)
+        ground_truth_rewards = Tensor(rewards)[:,None]
         ground_truth_next_states = Tensor([state for state in next_states])
         for i in range(self.update_batch_count):
             indices = torch.randperm(len(inputs))[:self.batch_size]
-            batch_inputs = inputs[indices]
-            batch_ground_truth_rewards = ground_truth_rewards[indices]
-            batch_ground_truth_next_states = ground_truth_next_states[indices]
+            batch_inputs = inputs#[indices]
+            batch_ground_truth_rewards = ground_truth_rewards#[indices]
+            batch_ground_truth_next_states = ground_truth_next_states#[indices]
             state_optimizer.zero_grad()
-            reward_optimizer.zero_grad()
             reward_predictions , state_predictions = self._forward(batch_inputs)
-            reward_loss:Tensor = L1Loss()(reward_predictions , batch_ground_truth_rewards)
             next_state_loss:Tensor = BCELoss() (state_predictions , batch_ground_truth_next_states)
-            loss = reward_loss + next_state_loss
-            reward_loss.backward()
-            reward_optimizer.step()
+            reward_loss = None
             next_state_loss.backward()
             state_optimizer.step()
+            if next_state_loss < 0.02:
+                reward_loss:Tensor = L1Loss()(reward_predictions , batch_ground_truth_rewards)
+                reward_optimizer.zero_grad()
+                reward_loss.backward()
+                reward_optimizer.step()
+            if reward_loss is None:
+                reward_loss = Tensor([0.0])
+            loss = reward_loss + next_state_loss
             loss_text = f"loss:{round(loss.item() , ndigits=3)} reward_loss:{round(reward_loss.item() , ndigits=3)} next_state_loss:{round(next_state_loss.item(),ndigits=3)}"
             logging.getLogger().log(logging.INFO , loss_text)
-        return next_state_loss
+        return reward_loss , next_state_loss
     
     def predict(self, batch_actions:List[np.ndarray] , batch_states:List[np.ndarray]) -> Tuple[Tensor , Tensor]:
         self.eval()
