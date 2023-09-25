@@ -97,8 +97,8 @@ def dqn():
             new_position , reward , is_done , _ , _ = environment.step(agent , args.timesteps) # r_0
             agent.append_observation(agent.position , agent.action , reward + agent.discount_rate * agent.q[int(new_position[0]) , int(new_position[1])].max() , new_position) # previous state , last action and the reward
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
-            agent.step(reward , new_position , environment.current_timestep) # updates values and creates new action : s_1 , a_1 ->>> direct RL
-            if len(list(agent.model.data.keys())) > 10: # at least 10 positions seen by agent
+            agent.step(new_position , environment.current_timestep) # creates new action
+            if len(list(agent.model.data.keys())) > 10: # at least 10 different positions seen by agent
                 agent.model.update(agent.optimizers_dict)
             if is_done:
                 reward_sum += reward 

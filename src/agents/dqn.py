@@ -15,17 +15,18 @@ class DQN(DynaQAgent):
         current_q_values = self.model.predict(inputs).numpy()
         return  current_q_values
     
-    def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
+    def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray , is_terminal:bool):
         state_index = int(state[0] * len(self.q[0]) + state[1])
-        if state_index not in self.model.data.keys():
-            self.model.data[state_index] = {}
-        self.model.data[state_index][action] = (int(next_state[0] * len(self.q[0]) + next_state[1]) , reward)
+        if is_terminal:
+            ground_truth_q_value = reward
+        else:
+            input_dict = {'states' : [state]}
+            ground_truth_q_value = reward + self.discount_rate * (self.model.predict(input_dict)[action.value])
+        self.model.data[state_index] = [action , ground_truth_q_value]
+
     
-    def step(self , reward:float , new_position:np.ndarray , current_timestep:int):
+    def step(self , new_position:np.ndarray , current_timestep:int):
         x_0 , x_1 , y_0 , y_1 , _ = self._step(new_position , current_timestep)
-        # self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
-        #     reward + self.discount_rate * (self.q[y_1 , x_1].max()) - self.q[y_0 , x_0 , self.action.value])
-        current_q_estimation = self.model.update(self.optimizers_dict)
         new_action = self.act(current_timestep)
         self.action = new_action
         return
