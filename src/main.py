@@ -4,19 +4,51 @@ from logging import getLogger
 
 from agents.agent import Agent
 from agents.dyna_q import DynaQAgent
+from agents.dqn import DQN
+from models.dyna_q_model import DynaQModel
+from models.dqn_model import DQNModel
 from environments.grid_world_with_local_optimums import \
     LocalUptimumGridWorld as GridWorld
 
 logger = getLogger()
 logger.setLevel(logging.INFO)
 
-def main():
+def dynaQ():
     environment = GridWorld((10,10) , output_path='./../outputs')
+    model = DynaQModel(state_size=int(environment.world.shape[0] * environment.world.shape[1]) , 
+                               action_size= 4, # up , down , left , right
+                               update_batch_count=1, 
+                               batch_size=20)
     agent = DynaQAgent(environment.agent_start_position , 
                                 environment.world.shape,
+                                model,
                                 epsilon= 0.15,
                                 alpha= 0.5 ,
                                 discount_rate=0.8)
+    parser = ArgumentParser()
+    parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
+    args = parser.parse_args()
+    model_based(environment , agent , args)
+    
+    
+    return
+
+
+def dqn():
+    environment = GridWorld((10,10) , output_path='./../outputs')
+    discount_rate = 0.8
+    model = DQNModel(state_size=int(environment.world.shape[0] * environment.world.shape[1]) , 
+                               action_size= 4, # up , down , left , right
+                               update_batch_count=1, 
+                               batch_size=20 , 
+                               gamma = discount_rate)
+    agent = DQN(environment.agent_start_position , 
+                                environment.world.shape,
+                                model,
+                                epsilon= 0.15,
+                                alpha= 0.5 ,
+                                discount_rate = discount_rate
+                                )
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
     args = parser.parse_args()
