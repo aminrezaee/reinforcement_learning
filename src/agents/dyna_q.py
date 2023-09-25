@@ -14,15 +14,14 @@ class DynaQAgent(QLearningAgent):
     def __init__(self, start_position:np.ndarray , 
                  world_map_size:tuple , 
                  model:Module,
+                 optimizers_dict:dict,
                  epsilon:float = 0.05 , 
                  alpha:float = 0.1 , 
-                 discount_rate:float = 1 , 
-                 learning_rate:float = 1e-2 , 
+                 discount_rate:float = 1 ,  
                  simulated_observation_count:int = 10) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
         self.model:DynaQModel = model
-        self.state_optimizer = Adam(self.model.next_state_predictor.parameters() , lr=learning_rate , weight_decay=1e-4)
-        self.reward_optimizer = Adam(self.model.reward_predictor.parameters() , lr=learning_rate , weight_decay=1e-5)
+        self.optimizers_dict = optimizers_dict
         self.simulated_observation_count = simulated_observation_count
 
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray):
@@ -40,7 +39,7 @@ class DynaQAgent(QLearningAgent):
         indices = np.random.choice(np.arange(len(states)), self.simulated_observation_count, replace=False)
         states = [states[i] for i in indices]
         actions = [actions[i] for i in indices]
-        rewards , next_states = self.model.predict(actions , states)
+        rewards , next_states = self.model.predict({'actions':actions , 'states':states})
         states = [self.get_position(states[i]) for i in range(len(states))]
         next_states = [self.get_position(next_states[i].numpy()) for i in range(len(next_states))]
         rewards = rewards.tolist()

@@ -89,7 +89,13 @@ class BaseModel(Module):
         return NotImplementedError
 
     @abstractclassmethod
-    def create_ground_truth(self, states:List[np.ndarray], rewards:List[float], next_states:List[np.ndarray], terminal_stats:List[bool]) -> dict:
+    def create_ground_truth(
+        self,
+        states: List[np.ndarray],
+        rewards: List[float],
+        next_states: List[np.ndarray],
+        terminal_stats: List[bool],
+    ) -> dict:
         return NotImplementedError
 
     def update(self, optimizers_dict: dict) -> Tensor:
