@@ -2,9 +2,10 @@ from typing import List, Tuple
 
 import numpy as np
 from torch.optim import Adam
+from torch.nn import Module
 
 from action import Action
-from models.fully_connected import BaseModel
+from models.dyna_q_model import DynaQModel
 
 from .q_learning import QLearningAgent
 
@@ -12,16 +13,14 @@ from .q_learning import QLearningAgent
 class DynaQAgent(QLearningAgent):
     def __init__(self, start_position:np.ndarray , 
                  world_map_size:tuple , 
+                 model:Module,
                  epsilon:float = 0.05 , 
                  alpha:float = 0.1 , 
                  discount_rate:float = 1 , 
                  learning_rate:float = 1e-2 , 
                  simulated_observation_count:int = 10) -> None:
         super().__init__(start_position, world_map_size, epsilon, alpha , discount_rate)
-        self.model = BaseModel(state_size=int(world_map_size[0] * world_map_size[1]) , 
-                               action_size= self.q.shape[-1] , 
-                               update_batch_count=1, 
-                               batch_size=20)
+        self.model:DynaQModel = model
         self.state_optimizer = Adam(self.model.next_state_predictor.parameters() , lr=learning_rate , weight_decay=1e-4)
         self.reward_optimizer = Adam(self.model.reward_predictor.parameters() , lr=learning_rate , weight_decay=1e-5)
         self.simulated_observation_count = simulated_observation_count
