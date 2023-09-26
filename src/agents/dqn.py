@@ -20,12 +20,12 @@ class DQN(DynaQAgent):
         return  current_q_values
     
     def append_observation(self, state:np.ndarray , action:Action , reward:float , next_state:np.ndarray , is_terminal:bool):
-        state_index = self.get_state_index(state)
+        state_index = self.get_state_index(next_state)
         if is_terminal:
             ground_truth_q_value = reward
         else:
-            input_dict = {DQNKeywords.states : [self.model.get_one_hot(state_index , self.model.state_size)]}
-            ground_truth_q_value = reward + self.discount_rate * (self.model.predict(input_dict).numpy().reshape(-1)[action.value])
+            input_dict = {DQNKeywords.states : [self.model.get_one_hot(state_index , self.model.state_size)]} # next state data
+            ground_truth_q_value = reward + self.discount_rate * (self.model.predict(input_dict).numpy().max())
         if state_index not in self.model.data:
             self.model.data[state_index] = {}
         self.model.data[state_index][action]  = {DQNKeywords.ground_truth_q_values: ground_truth_q_value , 

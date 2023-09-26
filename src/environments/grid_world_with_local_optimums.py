@@ -64,6 +64,9 @@ class LocalUptimumGridWorld(GridWorld):
 
     def render_world(self, agent: Agent , agent_color:int) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])
+        current_q = agent.get_q()[0]
+        print(current_q)
+        agent.q[y,x] = current_q
         world_copy = self.world.copy()
         world_copy[x, y] = agent_color
         q_world = agent.q.copy()

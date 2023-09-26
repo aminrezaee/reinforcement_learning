@@ -10,10 +10,10 @@ import numpy as np
 from typing import List ,Tuple
 from action import Action
 from agents.dqn import DQNKeywords
-def calculate_q_value(gamma , reward , next_state_q_value , current_q_value , terminal_stat):
-    if terminal_stat:
-        return reward
-    return (current_q_value + gamma * next_state_q_value).max()
+# def calculate_q_value(gamma , reward , next_state_q_value , current_q_value , terminal_stat):
+#     if terminal_stat:
+#         return reward
+#     return (current_q_value + gamma * next_state_q_value).max()
 
 class DQNModel(BaseModel):
     def __init__(
@@ -57,13 +57,14 @@ class DQNModel(BaseModel):
     
     def create_ground_truth(self, input_dict:dict) -> dict:
         ground_truth = dict()
-        current_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.states]})
-        next_states_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.next_states]})
-        calculate_q_value_ = partial(calculate_q_value , self.gamma) 
-        with ThreadPoolExecutor(5) as executor:
-            items = [item for item in zip(input_dict[DQNKeywords.rewards] , next_states_q_values , current_q_values , input_dict[DQNKeywords.terminal_stat])]
-            q_values = list(executor.map(lambda x: calculate_q_value_(*x) , items))
-        ground_truth['q_values'] = Tensor(q_values)
+        # current_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.states]})
+        # next_states_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.next_states]})
+        # calculate_q_value_ = partial(calculate_q_value , self.gamma) 
+        # with ThreadPoolExecutor(5) as executor:
+        #     items = [item for item in zip(input_dict[DQNKeywords.rewards] , next_states_q_values , current_q_values , input_dict[DQNKeywords.terminal_stat])]
+        #     q_values = list(executor.map(lambda x: calculate_q_value_(*x) , items))
+
+        ground_truth['q_values'] = Tensor(input_dict[DQNKeywords.ground_truth_q_values])
         return ground_truth
     
     def create_inputs(self , input_dict:dict) -> Tensor:

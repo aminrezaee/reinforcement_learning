@@ -68,14 +68,14 @@ def dynaQ():
 
 
 def dqn():
-    environment = GridWorld((10,10) , output_path='./../outputs')
+    environment = GridWorld((5,5) , output_path='./../outputs')
     discount_rate = 0.8
     model = DQNModel(state_size=int(environment.world.shape[0] * environment.world.shape[1]) , 
                                action_size= 4, # up , down , left , right
                                update_batch_count=1, 
                                batch_size=20 , 
                                gamma = discount_rate)
-    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-2 , weight_decay=1e-4)}
+    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-3 , weight_decay=1e-4)}
 
     agent = DQN(environment.agent_start_position , 
                                 environment.world.shape,
