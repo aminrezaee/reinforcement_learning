@@ -47,24 +47,23 @@ class BaseModel(Module):
         return onehot
 
     def unfold_data(
-        self,
-    ) -> Tuple[List[np.ndarray], List[np.ndarray], List[float], List[np.ndarray]]:
+        self, keys:List[str]
+    ) -> Dict[str , List]:
         state_indices = self.data.keys()
-        states = []
-        actions = []
-        rewards = []
-        next_states = []
         total_actions = Action.get_all_actions()
+        output = {
+            key: [] for key in keys
+        }
+        output["states"] = []
+        output["actions"] = []
         for index in state_indices:
             for action in total_actions:
                 if action in self.data[index].keys():
-                    states.append(self.get_one_hot(index, self.state_size))
-                    actions.append(self.get_one_hot(action.value, self.action_size))
-                    rewards.append(self.data[index][action][1])
-                    next_states.append(
-                        self.get_one_hot(self.data[index][action][0], self.state_size)
-                    )
-        return states, actions, rewards, next_states
+                    output['states'].append(self.get_one_hot(index, self.state_size))
+                    output['actions'].append(self.get_one_hot(action.value, self.action_size))
+                    for key in keys:
+                        output[key].append(self.data[index][action][key])
+        return output
 
     def predict(self, input_dict: dict) -> Any:
         self.eval()
@@ -90,24 +89,13 @@ class BaseModel(Module):
 
     @abstractclassmethod
     def create_ground_truth(
-        self,
-        states: List[np.ndarray],
-        rewards: List[float],
-        next_states: List[np.ndarray],
-        terminal_stats: List[bool],
-    ) -> dict:
+        self, input_dict:dict) -> dict:
         return NotImplementedError
 
-    def update(self, optimizers_dict: dict) -> Tensor:
+    def update(self, optimizers_dict: dict , keys:List[str]) -> Tensor:
         self.train()
-        states, actions, rewards, next_states = self.unfold_data()
-        input_dict = {
-            "states": states,
-            "actions": actions,
-            "rewards": rewards,
-            "next_states": next_states,
-        }
+        input_dict = self.unfold_data(keys)
         inputs = self.create_inputs(input_dict)
-        ground_truth = self.create_ground_truth(states, actions, rewards, next_states)
+        ground_truth = self.create_ground_truth(input_dict)
         self._update(inputs, ground_truth, optimizers_dict)
         return

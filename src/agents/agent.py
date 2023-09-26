@@ -18,16 +18,16 @@ class Agent:
         self.alpha = alpha
         self.discount_rate = discount_rate
         self.action:Action = None
+        self.world_map_size = world_map_size
 
     def act(self, current_timestep:int) -> Action:
         if np.random.uniform() < self.epsilon:
             return Action.get_all_actions()[np.random.randint(low=0, high=len(Action.get_all_actions()))]
-        x , y = int(self.position[0]) , int(self.position[1])
-        q = self.get_q()
-        indices = np.where(q[y,x] == q[ y , x].max())[0]
+        q = self.get_q().reshape(-1)
+        indices = np.where(q == q.max())[0]
         with open(self.debug_path , "a+") as file:
             file.write(f"timestep:{current_timestep} \n")
-            file.write(f"max:{q[ y , x].max()}\n")
+            file.write(f"max:{q.max()}\n")
             file.write("_".join([str(i) for i in indices]))
             file.write("\n")
             file.flush()
@@ -37,6 +37,9 @@ class Agent:
     
     def get_q(self) -> np.ndarray:
         return self.q[self.position[1] , self.position[0]]
+    
+    def get_state_index(self , position : np.ndarray):
+            return int(position[0] * self.world_map_size[0] + position[1])
     
     def _step(self , new_position:np.ndarray , current_timestep:int , choose_next_action:bool = True) -> Tuple[int , int , int , int , Optional[Tuple[Action , None]]]:
         x_0 , y_0 = int(self.position[0]) , int(self.position[1]) # s_0

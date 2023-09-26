@@ -85,10 +85,12 @@ class GridWorld(Env):
 
     def render_world(self,agent:Agent , agent_color:int) -> None:
         x , y = int(agent.position[0]) , int(agent.position[1])
+        current_q = agent.get_q()
+        agent.q[x,y] = current_q
         world_copy = self.world.copy()
         world_copy[x , y] = agent_color
-        q_world = agent.q.copy()
         self.ax.figure(figsize=(2*world_copy.shape[0] , 2*world_copy.shape[1]))
+        q_world = agent.q.copy()
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
                 quailities = list(np.round(q_world[i][j],decimals=1).astype(str))
