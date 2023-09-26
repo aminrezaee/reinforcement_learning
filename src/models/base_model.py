@@ -29,10 +29,10 @@ class BaseModel(Module):
         ] = {}  # next_state , reward
         self.device = device
 
-    def dense_layer(self, in_features):
+    def dense_layer(self, in_features , out_features = None):
         return Sequential(
             BatchNorm1d(num_features=in_features),
-            Linear(in_features=in_features, out_features=int(in_features / 2)),
+            Linear(in_features=in_features, out_features=out_features if out_features is not None else int(in_features / 2)),
             ReLU(),
         )
 
@@ -59,7 +59,7 @@ class BaseModel(Module):
         for index in state_indices:
             for action in total_actions:
                 if action in self.data[index].keys():
-                    output['states'].append(self.get_one_hot(index, self.state_size))
+                    output['states'].append(self.data[index]['states'])
                     output['actions'].append(self.get_one_hot(action.value, self.action_size))
                     for key in keys:
                         output[key].append(self.data[index][action][key])

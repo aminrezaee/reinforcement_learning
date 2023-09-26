@@ -20,8 +20,8 @@ class Agent:
         self.action:Action = None
         self.world_map_size = world_map_size
 
-    def act(self, current_timestep:int) -> Action:
-        if np.random.uniform() < self.epsilon:
+    def act(self, current_timestep:int , random=False) -> Action:
+        if np.random.uniform() < self.epsilon or random:
             return Action.get_all_actions()[np.random.randint(low=0, high=len(Action.get_all_actions()))]
         q = self.get_q().reshape(-1)
         indices = np.where(q == q.max())[0]

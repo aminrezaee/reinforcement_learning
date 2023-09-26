@@ -70,20 +70,20 @@ def dynaQ():
 def dqn():
     environment = GridWorld((5,5) , output_path='./../outputs')
     discount_rate = 0.8
-    model = DQNModel(state_size=int(environment.world.shape[0] * environment.world.shape[1]) , 
-                               action_size= 4, # up , down , left , right
-                               update_batch_count=1, 
-                               batch_size=20 , 
-                               gamma = discount_rate)
-    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-3 , weight_decay=1e-4)}
+    model = DQNModel(state_size=2 , 
+                     action_size= 4, # up , down , left , right
+                     update_batch_count=1, 
+                     batch_size=20 , 
+                     gamma = discount_rate)
+    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-2 , weight_decay=1e-4)}
 
     agent = DQN(environment.agent_start_position , 
-                                environment.world.shape,
-                                model,
-                                optimizers_dict,
-                                epsilon= 0.15,
-                                alpha= 0.5 ,
-                                discount_rate = discount_rate)
+                environment.world.shape,
+                model,
+                optimizers_dict,
+                epsilon= 0.15,
+                alpha= 0.5 ,
+                discount_rate = discount_rate)
     parser = ArgumentParser()
     parser.add_argument('-t' , '--timesteps' , default=2000 , type=int)
     args = parser.parse_args()
@@ -106,7 +106,7 @@ def dqn():
                                      is_done) # previous state , last action and the reward
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(new_position , environment.current_timestep) # sets new position and creates new action
-            if len(list(agent.model.data.keys())) > 5: # at least 10 different positions seen by agent
+            if len(list(agent.model.data.keys())) > 10: # at least 10 different positions seen by agent
                 agent.model.update(agent.optimizers_dict , keys=[DQNKeywords.ground_truth_q_values , DQNKeywords.rewards , DQNKeywords.next_states , DQNKeywords.terminal_stat])
             if is_done:
                 reward_sum += reward 

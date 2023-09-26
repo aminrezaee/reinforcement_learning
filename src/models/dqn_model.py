@@ -29,11 +29,14 @@ class DQNModel(BaseModel):
             state_size, action_size, update_batch_count, batch_size, device
         )
         self.q_value_predictor = Sequential(
-            self.dense_layer(state_size),
-            self.dense_layer(int(state_size / 2)),
-            Linear(in_features=int(state_size / 4), out_features=action_size),
+            self.dense_layer(state_size , out_features=int(4 * state_size)),
+            self.dense_layer(int(4 * state_size)),
+            self.dense_layer(int(2 * state_size)),
+            Linear(state_size , state_size),
+            Linear(in_features=state_size, out_features=action_size),
             Linear(in_features=action_size, out_features=action_size),
         )
+        self.random = True
         self.gamma = gamma
 
     def _forward(self, inputs: Tensor):
@@ -41,14 +44,15 @@ class DQNModel(BaseModel):
 
     def _update(self, inputs, ground_truth: dict, optimizers_dict: dict) -> Tensor:
         optimizer: Adam = optimizers_dict["optimizer"]
-
+        self.random = False
+        print(f"input size:{len(inputs)}")
         for i in range(self.update_batch_count):
-            indices = torch.randperm(len(inputs))[: self.batch_size]
-            batch_inputs = inputs[indices]
-            batch_ground_truth_q_values = ground_truth["q_values"][indices]
+            # indices = torch.randperm(len(inputs))[: self.batch_size]
+            batch_inputs = inputs#[indices]
+            batch_ground_truth_q_values = ground_truth["q_values"]#[indices]
             optimizer.zero_grad()
             q_values_predictions = self._forward(batch_inputs)
-            loss: Tensor = HuberLoss()(q_values_predictions.max(dim=1)[0], batch_ground_truth_q_values)
+            loss: Tensor = MSELoss()(q_values_predictions.max(dim=1)[0], batch_ground_truth_q_values)
             loss_text = f"loss:{round(loss.item() , ndigits=3)}"
             logging.getLogger().log(logging.INFO, loss_text)
             loss.backward()
