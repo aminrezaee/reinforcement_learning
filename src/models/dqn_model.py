@@ -1,19 +1,11 @@
-from torch.nn import Linear, Sequential, MSELoss , HuberLoss
+from torch.nn import Linear, Sequential, MSELoss
 from torch.optim import Adam
 from torch import Tensor
 import torch
 from .base_model import BaseModel
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 import numpy as np
-from typing import List ,Tuple
-from action import Action
 from agents.dqn import DQNKeywords
-# def calculate_q_value(gamma , reward , next_state_q_value , current_q_value , terminal_stat):
-#     if terminal_stat:
-#         return reward
-#     return (current_q_value + gamma * next_state_q_value).max()
 
 class DQNModel(BaseModel):
     def __init__(
@@ -44,15 +36,20 @@ class DQNModel(BaseModel):
 
     def _update(self, inputs, ground_truth: dict, optimizers_dict: dict) -> Tensor:
         optimizer: Adam = optimizers_dict["optimizer"]
+        timesteps = ground_truth["current_timestep"]
+        current_timestep = max(timesteps)
         self.random = False
+        # last_inputs = inputs[(current_timestep - timesteps) < 100] # just use last timesteps
+        # ground_truth["q_values"] = ground_truth["q_values"][(current_timestep - timesteps) < 100]
         print(f"input size:{len(inputs)}")
         for i in range(self.update_batch_count):
-            # indices = torch.randperm(len(inputs))[: self.batch_size]
+            # indices = torch.randperm(len(inputs))[: min(len(inputs) , self.batch_size)]
             batch_inputs = inputs#[indices]
             batch_ground_truth_q_values = ground_truth["q_values"]#[indices]
             optimizer.zero_grad()
             q_values_predictions = self._forward(batch_inputs)
-            loss: Tensor = MSELoss()(q_values_predictions.max(dim=1)[0], batch_ground_truth_q_values)
+            q_values_predictions = torch.gather(q_values_predictions , 1 , torch.argmax(ground_truth['actions'] , dim = 1)[:,None])
+            loss: Tensor = MSELoss()(q_values_predictions, batch_ground_truth_q_values[:,None])
             loss_text = f"loss:{round(loss.item() , ndigits=3)}"
             logging.getLogger().log(logging.INFO, loss_text)
             loss.backward()
@@ -69,6 +66,8 @@ class DQNModel(BaseModel):
         #     q_values = list(executor.map(lambda x: calculate_q_value_(*x) , items))
 
         ground_truth['q_values'] = Tensor(input_dict[DQNKeywords.ground_truth_q_values])
+        ground_truth['actions'] = Tensor(input_dict['actions'])
+        ground_truth['current_timestep'] = Tensor(input_dict['current_timestep'])
         return ground_truth
     
     def create_inputs(self , input_dict:dict) -> Tensor:

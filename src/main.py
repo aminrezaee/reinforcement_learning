@@ -68,14 +68,14 @@ def dynaQ():
 
 
 def dqn():
-    environment = GridWorld((5,5) , output_path='./../outputs')
+    environment = GridWorld((10, 10) , output_path='./../outputs')
     discount_rate = 0.8
     model = DQNModel(state_size=2 , 
                      action_size= 4, # up , down , left , right
-                     update_batch_count=1, 
+                     update_batch_count=4, 
                      batch_size=20 , 
                      gamma = discount_rate)
-    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-2 , weight_decay=1e-4)}
+    optimizers_dict = {'optimizer':Adam(params= model.parameters() , lr=1e-4 , weight_decay=1e-4)}
 
     agent = DQN(environment.agent_start_position , 
                 environment.world.shape,
@@ -103,11 +103,16 @@ def dqn():
                                      agent.action , 
                                      reward , 
                                      new_position , 
-                                     is_done) # previous state , last action and the reward
+                                     is_done , 
+                                     environment.current_timestep) # previous state , last action and the reward
             logger.log(logging.DEBUG ,f"timestep:{environment.current_timestep}")
             agent.step(new_position , environment.current_timestep) # sets new position and creates new action
-            if len(list(agent.model.data.keys())) > 10: # at least 10 different positions seen by agent
-                agent.model.update(agent.optimizers_dict , keys=[DQNKeywords.ground_truth_q_values , DQNKeywords.rewards , DQNKeywords.next_states , DQNKeywords.terminal_stat])
+            if len(list(agent.model.data.keys())) > 15: # at least 10 different positions seen by agent
+                agent.model.update(agent.optimizers_dict , keys=[DQNKeywords.ground_truth_q_values , 
+                                                                 DQNKeywords.rewards , 
+                                                                 DQNKeywords.next_states , 
+                                                                 DQNKeywords.terminal_stat , 
+                                                                 DQNKeywords.current_timestep])
             if is_done:
                 reward_sum += reward 
             

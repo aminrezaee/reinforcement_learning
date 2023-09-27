@@ -33,7 +33,7 @@ class LocalUptimumGridWorld(GridWorld):
     def step(self, agent:Agent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
         action = agent.action
         if self.invalid_move(action , agent):
-            reward = -5 #- min(1.2 ** self.current_timestep_in_episode , 100)
+            reward = -40 #- min(1.2 ** self.current_timestep_in_episode , 100)
             is_done = False
             self.current_timestep += 1
             return agent.position , reward , is_done , is_done , None
