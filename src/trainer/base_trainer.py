@@ -19,11 +19,12 @@ class BaseTrainer:
     def train(self):
         reward = 0
         reward_sum = 0
+        logging.getLogger().setLevel(logging.INFO)
         while self.current_timestep < self.maximum_timesteps:
             is_done = False
             position = self.environment.reset()
             while not is_done:
-                logging.getLogger().log(logging.DEBUG ,f"timestep:{self.current_timestep}")
+                logging.getLogger().log(logging.INFO ,f"timestep:{self.current_timestep}")
                 action , prob , value = self.agent.step(position)
                 new_position , reward , is_done , _ , _ = self.environment.step(self.agent , self.maximum_timesteps)
                 self.agent.memory.append(new_position , prob , value , action , reward , is_done)

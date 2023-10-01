@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import numpy as np
@@ -79,6 +80,8 @@ class ProximalPolicyOptimization(Agent):
             critic_loss = critic_loss.mean()
             total_loss = actor_loss + 0.5 * critic_loss
             total_loss.backward()
+            loss_text = f"loss:{round(total_loss.item() , ndigits=3)}"
+            logging.getLogger().log(logging.INFO, loss_text)
             self.actor_optimizer.step()
             self.critic_optimizer.step()
         return
