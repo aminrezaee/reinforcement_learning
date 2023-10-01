@@ -36,11 +36,7 @@ class DQNModel(BaseModel):
 
     def _update(self, inputs, ground_truth: dict, optimizers_dict: dict) -> Tensor:
         optimizer: Adam = optimizers_dict["optimizer"]
-        timesteps = ground_truth["current_timestep"]
-        current_timestep = max(timesteps)
         self.random = False
-        # last_inputs = inputs[(current_timestep - timesteps) < 100] # just use last timesteps
-        # ground_truth["q_values"] = ground_truth["q_values"][(current_timestep - timesteps) < 100]
         print(f"input size:{len(inputs)}")
         for i in range(self.update_batch_count):
             # indices = torch.randperm(len(inputs))[: min(len(inputs) , self.batch_size)]
@@ -58,13 +54,6 @@ class DQNModel(BaseModel):
     
     def create_ground_truth(self, input_dict:dict) -> dict:
         ground_truth = dict()
-        # current_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.states]})
-        # next_states_q_values = self.predict({DQNKeywords.states : input_dict[DQNKeywords.next_states]})
-        # calculate_q_value_ = partial(calculate_q_value , self.gamma) 
-        # with ThreadPoolExecutor(5) as executor:
-        #     items = [item for item in zip(input_dict[DQNKeywords.rewards] , next_states_q_values , current_q_values , input_dict[DQNKeywords.terminal_stat])]
-        #     q_values = list(executor.map(lambda x: calculate_q_value_(*x) , items))
-
         ground_truth['q_values'] = Tensor(input_dict[DQNKeywords.ground_truth_q_values])
         ground_truth['actions'] = Tensor(input_dict['actions'])
         ground_truth['current_timestep'] = Tensor(input_dict['current_timestep'])

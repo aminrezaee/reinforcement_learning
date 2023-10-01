@@ -16,14 +16,12 @@ class BaseModel(Module):
         state_size: int,
         action_size: int,
         update_batch_count: int,
-        batch_size: int = 20,
         device="cpu",
     ) -> None:
         super().__init__()
         self.state_size = state_size
         self.action_size = action_size
         self.update_batch_count = update_batch_count
-        self.batch_size = batch_size
         self.data: Dict[
             int, Dict[Action, Tuple[int, float]]  # state  # action
         ] = {}  # next_state , reward
