@@ -85,3 +85,8 @@ class ProximalPolicyOptimization(Agent):
             self.actor_optimizer.step()
             self.critic_optimizer.step()
         return
+    
+    def save_models(self , path) -> None:
+        torch.save(self.actor.state_dict(),f"{path}/actor.pt")
+        torch.save(self.critic.state_dict(),f"{path}/critic.pt")
+        return 

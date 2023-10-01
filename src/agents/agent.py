@@ -57,6 +57,9 @@ class Agent:
     def learn(self) -> None:
         return NotImplementedError
     
+    def save_models(self , path) -> None:
+        return NotImplementedError
+    
     def append_observation(
         self,
         state: np.ndarray,

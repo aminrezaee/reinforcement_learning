@@ -11,7 +11,8 @@ from agents.agent import Agent
 
 
 class BaseEnvironment(Env):
-    def __init__(self) -> None:
+    def __init__(self , output_path) -> None:
+        self.output_path = output_path
         pass
 
     def is_done(self, x:int, y:int) -> bool:

@@ -13,9 +13,8 @@ from .base_environment import BaseEnvironment
 
 class GridWorld(BaseEnvironment):
     def __init__(self , size , output_path:str , seed=0 , redo=True) -> None:
-        super().__init__()
+        super().__init__(output_path)
         self.seed = seed
-        self.output_path = output_path
         self.current_timestep = 0
         np.random.seed(self.seed)
         self.world:np.ndarray = np.zeros(size) # shows terminal states and rewards
