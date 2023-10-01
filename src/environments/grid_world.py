@@ -3,15 +3,15 @@ import shutil
 from typing import Any, Tuple
 
 import numpy as np
-from gym.core import Env
 from matplotlib import pyplot as plt
-from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+
 from PIL import Image
 
 from agents.agent import Action, Agent
+from .base_environment import BaseEnvironment
 
 
-class GridWorld(Env):
+class GridWorld(BaseEnvironment):
     def __init__(self , size , output_path:str , seed=0 , redo=True) -> None:
         super().__init__()
         self.seed = seed
@@ -28,7 +28,7 @@ class GridWorld(Env):
         self.fig , self.ax = plt.subplots(figsize=(2*size[0] , 2*size[1]))
         
         
-    def reset(self):
+    def reset(self) -> None:
         np.random.seed(self.seed)
         self.world:np.ndarray = (1 - 2* np.random.uniform(size=self.world.shape))
         self.world[self.world == self.world.max()] = 1 # terminal states
@@ -43,14 +43,8 @@ class GridWorld(Env):
     def is_done(self, x:int, y:int):
         return ((x == self.world_best[0]) and (y == self.world_best[1])) or ((x == self.world_worst[0]) and (y == self.world_worst[1]))
     
-    def step(self, agent:Agent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
-        action = agent.action
-        if self.invalid_move(action , agent):
-            reward = -5
-            is_done = False
-            self.current_timestep += 1
-            return agent.position , reward , is_done , is_done , None
-        new_position = agent.position.copy()
+    def next_state(self, action:Action , position):
+        new_position = position.copy()
         if action == Action.UP:
             new_position[0] -= 1
         elif action == Action.DOWN:
@@ -61,6 +55,17 @@ class GridWorld(Env):
             new_position[1] += 1
         else:
             raise NotImplementedError
+        return new_position
+    
+    def step(self, agent:Agent , maximum_timesteps) -> Tuple[Any, float, bool, bool, dict]:
+        action = agent.action
+        if self.invalid_move(action , agent):
+            reward = -5
+            is_done = False
+            self.current_timestep += 1
+            return agent.position , reward , is_done , is_done , None
+        
+        new_position = self.next_state(action , agent.position)
         x , y = int(new_position[0]) , int(new_position[1])
         distance_reward = 0 if self.world_best is None else 1/(1+ np.linalg.norm(self.world_best - new_position))
         terminal_reached = self.is_done(x,y)
@@ -70,7 +75,7 @@ class GridWorld(Env):
         self.current_timestep += 1
         return new_position , reward , is_done , None , None
     
-    def invalid_move(self , action:Action , agent:Agent):
+    def invalid_move(self , action:Action , agent:Agent) -> bool:
         is_invalid = ((action == Action.UP) and (agent.position[0] == 0)) or \
                      ((action == Action.DOWN) and (agent.position[0] >= int(self.world.shape[0] - 1))) or \
                      ((action == Action.LEFT) and (agent.position[1] == 0)) or \
@@ -109,36 +114,3 @@ class GridWorld(Env):
         self.ax.ylabel('Row')
         np_array = self.get_plot_array()
         Image.fromarray(np_array).save(f"{self.output_path}/imgs/{self.current_timestep}_world.png") 
-
-    def get_plot_array(self):
-        canvas = self.ax.figure.canvas.manager.canvas
-        # Update the canvas to render the plot
-        canvas.draw()
-        # Convert the plot to a 2D NumPy array
-        plot_array = np.array(canvas.renderer.buffer_rgba())
-        self.ax.cla()
-        return plot_array
-    
-    def create_video(self , postfix:str):
-        files = os.listdir(f"{self.output_path}/imgs")
-        files = [file_name for file_name in files if postfix in file_name]
-        files = sorted(files, key=lambda x: int(x.split(".")[0].split("_")[0]))
-        images = [np.array(Image.open(f"{self.output_path}/imgs/{name}")) for name in files]
-        clip = ImageSequenceClip(images, fps=8)
-        clip.write_videofile(f"{self.output_path}/output_{postfix}.mp4")
-        return
-    
-    def hex_to_rgba(self, hex_color:str) -> Tuple:
-        # Remove the "#" symbol if present
-        hex_color = hex_color.lstrip("#")
-        
-        # Convert the hexadecimal color code to decimal values
-        red = int(hex_color[0:2], 16)
-        green = int(hex_color[2:4], 16)
-        blue = int(hex_color[4:6], 16)
-        
-        # Convert the decimal values to the RGBA format
-        rgba_color = np.array([red, green, blue, 255])
-    
-        return rgba_color/255
-

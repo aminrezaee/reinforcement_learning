@@ -47,25 +47,10 @@ class LocalUptimumGridWorld(GridWorld):
         self.current_timestep += 1
         self.current_timestep_in_episode += 1
         return new_position , reward , is_done , None , None
-    
-    def next_state(self, action:Action , position):
-        new_position = position.copy()
-        if action == Action.UP:
-            new_position[0] -= 1
-        elif action == Action.DOWN:
-            new_position[0] += 1
-        elif action == Action.LEFT:
-            new_position[1] -= 1
-        elif action == Action.RIGHT:
-            new_position[1] += 1
-        else:
-            raise NotImplementedError
-        return new_position
 
     def render_world(self, agent: Agent , agent_color:int) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])
         current_q = agent.get_q()[0]
-        print(current_q)
         agent.q[y,x] = current_q
         world_copy = self.world.copy()
         world_copy[x, y] = agent_color
