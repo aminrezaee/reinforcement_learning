@@ -1,5 +1,5 @@
-import logging
-from typing import Dict, List, Tuple, Any
+from abc import abstractclassmethod
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -7,7 +7,6 @@ from torch import Tensor
 from torch.nn import BatchNorm1d, Linear, Module, ReLU, Sequential
 
 from action import Action
-from abc import abstractclassmethod
 
 
 class BaseModel(Module):

@@ -4,7 +4,6 @@ import numpy as np
 from matplotlib.colors import ListedColormap, NoNorm
 from PIL import Image
 
-from action import Action
 from agents.agent import Agent
 
 from .grid_world import GridWorld

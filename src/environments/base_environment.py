@@ -1,11 +1,14 @@
-from typing import Tuple , Any
-from agents.agent import Agent
-from action import Action
-from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 import os
+from typing import Any, Tuple
+
 import numpy as np
-from PIL import Image
 from gym.core import Env
+from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+from PIL import Image
+
+from action import Action
+from agents.agent import Agent
+
 
 class BaseEnvironment(Env):
     def __init__(self) -> None:

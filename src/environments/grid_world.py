@@ -4,10 +4,10 @@ from typing import Any, Tuple
 
 import numpy as np
 from matplotlib import pyplot as plt
-
 from PIL import Image
 
 from agents.agent import Action, Agent
+
 from .base_environment import BaseEnvironment
 
 

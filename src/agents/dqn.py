@@ -1,7 +1,11 @@
 import numpy as np
-from .dyna_q import DynaQAgent
-from action import Action
 from torch.nn import Module
+
+from action import Action
+
+from .dyna_q import DynaQAgent
+
+
 class DQNKeywords:
     states = 'states'
     ground_truth_q_values = 'ground_truth_q_values'

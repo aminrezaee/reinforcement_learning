@@ -1,11 +1,15 @@
-from torch.nn import Linear, Sequential, MSELoss
-from torch.optim import Adam
-from torch import Tensor
-import torch
-from .base_model import BaseModel
 import logging
+
 import numpy as np
+import torch
+from torch import Tensor
+from torch.nn import Linear, MSELoss, Sequential
+from torch.optim import Adam
+
 from agents.dqn import DQNKeywords
+
+from .base_model import BaseModel
+
 
 class DQNModel(BaseModel):
     def __init__(

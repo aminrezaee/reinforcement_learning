@@ -1,11 +1,15 @@
-from .base_model import BaseModel
-import torch
-from torch import Tensor
-from torch.nn import L1Loss , BCELoss , Sequential , Linear , BatchNorm1d , ReLU , Softmax
-from torch.optim import Adam
-from typing import Tuple , List
 import logging
+from typing import List, Tuple
+
 import numpy as np
+from torch import Tensor
+from torch.nn import (BatchNorm1d, BCELoss, L1Loss, Linear, ReLU, Sequential,
+                      Softmax)
+from torch.optim import Adam
+
+from .base_model import BaseModel
+
+
 class DynaQModel(BaseModel):
     def __init__(self, state_size: int, action_size: int, update_batch_count: int, batch_size: int = 20, device='cpu') -> None:
         super().__init__(state_size, action_size, update_batch_count, batch_size, device)

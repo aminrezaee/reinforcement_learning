@@ -1,7 +1,6 @@
 from typing import List, Tuple
 
 import numpy as np
-from torch.optim import Adam
 from torch.nn import Module
 
 from action import Action

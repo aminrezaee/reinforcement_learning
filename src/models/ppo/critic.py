@@ -1,5 +1,8 @@
-from torch.nn import Sequential , ReLU , Linear , BatchNorm1d
+from torch.nn import BatchNorm1d, Linear, ReLU, Sequential
+
 from ..base_model import BaseModel
+
+
 class Critic(BaseModel):
     def __init__(self, state_size: int, action_size: int, device="cpu") -> None:
         super().__init__(state_size, action_size, 1, device)

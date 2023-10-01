@@ -1,19 +1,19 @@
-from agents.agent import Agent
-from action import Action
-from environments.base_environment import BaseEnvironment
 import logging
+
+from agents.agent import Agent
+from environments.base_environment import BaseEnvironment
+
+
 class BaseTrainer:
     def __init__(self , 
                  agent:Agent , 
                  environment:BaseEnvironment, 
                  maximum_timesteps:int , 
-                 verbose:bool = True , 
-                 update_per_timestep:int = 10) -> None:
+                 verbose:bool = True) -> None:
         self.agent = agent 
         self.environment = environment
         self.maximum_timesteps = maximum_timesteps
         self.current_timestep:int = 0
-        self.update_per_timestep = update_per_timestep
         self.verbose = verbose
     
     def train(self):
@@ -29,9 +29,9 @@ class BaseTrainer:
                 self.agent.memory.append(new_position , prob , value , action , reward , is_done)
                 if self.verbose:
                     self.environment.render(self.agent)
-                if self.current_timestep % self.update_per_timestep == 0:
-                    self.agent.learn()
                 self.current_timestep += 1
+                if self.current_timestep % self.agent.memory.batch_size == 0:
+                    self.agent.learn()
             if is_done:
                 reward_sum += reward 
             self.agent.memory.reset()

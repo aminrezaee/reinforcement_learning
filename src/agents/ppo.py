@@ -1,13 +1,16 @@
+from typing import Tuple
+
 import numpy as np
-from .agent import Agent
+import torch
+from torch import Tensor
+from torch.distributions import Categorical
+from torch.optim import Adam
+
 from action import Action
 from models.ppo.actor import Actor
 from models.ppo.critic import Critic
-from torch import Tensor
-from torch.distributions import Categorical
-import torch
-from torch.optim import Adam
-from typing import Tuple
+
+from .agent import Agent
 
 
 class ProximalPolicyOptimization(Agent):
