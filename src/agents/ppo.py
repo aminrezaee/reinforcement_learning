@@ -31,8 +31,8 @@ class ProximalPolicyOptimization(Agent):
         super().__init__(start_position, world_map_size , batch_size , epsilon, alpha, discount_rate , device)
         self.actor = Actor(len(start_position), len(Action.get_all_actions()) , device)
         self.critic = Critic(len(start_position), len(Action.get_all_actions()) , device)
-        self.actor_optimizer = Adam(lr=1e-4)
-        self.critic_optimizer = Adam(lr=1e-4)
+        self.actor_optimizer = Adam(params=self.actor.parameters() , lr=1e-4)
+        self.critic_optimizer = Adam(params=self.critic.parameters() , lr=1e-4)
         self.iterations_per_update = iterations_per_update
         self.gae_lambda = gae_lambda
         self.clip_thr = clip_thr

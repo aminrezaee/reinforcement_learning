@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import torch
 
-from .action import Action
+from action import Action
 
 
 @dataclass

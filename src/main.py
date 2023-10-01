@@ -12,7 +12,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--timesteps", "-t", default=2000, type=int)
     args = parser.parse_args()
-    environment = GridWorld((10, 10), output_path="outputs/")
+    environment = GridWorld((10, 10), output_path="./../outputs/")
     agent = ProximalPolicyOptimization(
         start_position=np.array([0, 0]),
         world_map_size=environment.world.shape,
