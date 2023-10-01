@@ -39,15 +39,17 @@ class ProximalPolicyOptimization(Agent):
 
     def step(self, new_position: np.ndarray) -> Tuple[Action, float , float]:
         self.position = new_position
-        state = Tensor(new_position)
+        state = Tensor(new_position)[None,:]
+        self.actor.eval()
+        self.critic.eval()
         distribution: Categorical = self.actor(state)
         value = self.critic(state)
         action = distribution.sample()
         self.action = Action.get_all_actions()[action]
-        probs = torch.squeeze(distribution.log_prob(action)).item()
+        log_prob = torch.squeeze(distribution.log_prob(action)).item()
         action = torch.squeeze(action).item()
         value = torch.squeeze(value).item()
-        return self.action , probs, value
+        return self.action , log_prob , value
 
     def learn(self) -> None:
         advantages =  np.zeros(len(self.memory.items) , dtype=np.float32)
@@ -65,13 +67,13 @@ class ProximalPolicyOptimization(Agent):
         for _ in self.iterations_per_update:
             self.actor_optimizer.zero_grad()
             self.critic_optimizer.zero_grad()
-            indices , states, actions, probs, values, rewards, dones = self.memory.sample()
+            indices , states, actions, log_probs, values, rewards, dones = self.memory.sample()
             states = Tensor(states , device= self.device)
             actions = Tensor(actions , device= self.device)
             distribution:Categorical = self.actor(states)
             critic_values = torch.squeeze(self.critic(states))
-            new_probs = distribution.log_prob(actions)
-            prob_ratio = new_probs.exp()/probs.exp()
+            new_log_probs = distribution.log_prob(actions)
+            prob_ratio = new_log_probs.exp()/log_probs.exp()
             weighted_probs = advantages[indices] * prob_ratio
             clipped_probs = torch.clamp(prob_ratio , 1-self.clip_thr , 1+ self.clip_thr) * advantages[indices]
             actor_loss = -torch.min(weighted_probs , clipped_probs).mean()
