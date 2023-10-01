@@ -11,4 +11,7 @@ class QLearningAgent(Agent):
             reward + self.discount_rate * (self.q[y_1 , x_1].max()) - self.q[y_0 , x_0 , self.action.value])
         new_action = self.act(current_timestep)
         self.action = new_action
-        return    
+        return 
+       
+    def learn(self) -> None:
+        return 

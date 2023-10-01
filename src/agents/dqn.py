@@ -14,6 +14,7 @@ class DQN(DynaQAgent):
                 model: Module, optimizers_dict:dict, epsilon: float = 0.05, alpha: float = 0.1, 
                 discount_rate: float = 1) -> None:
       super().__init__(start_position, world_map_size, model , optimizers_dict, epsilon, alpha, discount_rate, 0)
+      self.random = True
     
     def get_q(self) -> np.ndarray:
         input_dict = {DQNKeywords.states:[self.position]}
@@ -36,8 +37,7 @@ class DQN(DynaQAgent):
                                                 DQNKeywords.current_timestep: current_timestep}
 
     
-    def step(self , new_position:np.ndarray , current_timestep:int):
-        x_0 , x_1 , y_0 , y_1 , _ = self._step(new_position , current_timestep)
-        new_action = self.act(current_timestep , self.model.random)
-        self.action = new_action
+    def step(self , new_position:np.ndarray):
+        self.position = new_position
+        self.action = self.epsilon_greedy(self.get_q() , self.random) 
         return

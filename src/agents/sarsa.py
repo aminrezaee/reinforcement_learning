@@ -11,6 +11,9 @@ class SARSAAgent(Agent):
             reward + self.discount_rate * (self.q[y_1 , x_1 , new_action.value]) - self.q[y_0 , x_0 , self.action.value])
         self.action = new_action
 
+    def learn(self) -> None:
+        return 
+
 class ExpectedSARSA(Agent):
     def step(self, reward: int, new_position: np.ndarray, current_timestep: int) -> None:
         x_0 , x_1 , y_0 , y_1 , _ = self._act(new_position , current_timestep , choose_next_action=False)
@@ -28,4 +31,7 @@ class ExpectedSARSA(Agent):
         self.q[ y_0 , x_0 , self.action.value] += self.alpha * ( # q(s , a) = q(s , a) + alpha * ( reward + gamma * (q(s' , a') - q(s , a))
             reward + self.discount_rate * mean_q_value - self.q[y_0 , x_0 , self.action.value])
         self.action = self.act(current_timestep)
+        return 
+    
+    def learn(self) -> None:
         return 
