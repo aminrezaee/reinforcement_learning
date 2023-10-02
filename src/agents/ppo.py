@@ -21,10 +21,12 @@ class ProximalPolicyOptimization(Agent):
         start_position: np.ndarray,
         world_map_size: tuple,
         batch_size:int,
+        mean:np.ndarray, 
+        max:np.ndarray,
         epsilon=0.05,
         alpha=0.1,
         discount_rate=0.8,
-        iterations_per_update: int = 3,
+        iterations_per_update: int = 20,
         gae_lambda:float = 0.95,
         clip_thr:float = 0.2 ,
         epochs:int=3,
@@ -33,16 +35,18 @@ class ProximalPolicyOptimization(Agent):
         super().__init__(start_position, world_map_size , batch_size , epsilon, alpha, discount_rate , device)
         self.actor = Actor(len(start_position), len(Action.get_all_actions()) , device)
         self.critic = Critic(len(start_position), len(Action.get_all_actions()) , device)
-        self.actor_optimizer = Adam(params=self.actor.parameters() , lr=1e-6)
-        self.critic_optimizer = Adam(params=self.critic.parameters() , lr=1e-5)
+        self.actor_optimizer = Adam(params=self.actor.parameters() , lr=1e-4)
+        self.critic_optimizer = Adam(params=self.critic.parameters() , lr=1e-4)
         self.iterations_per_update = iterations_per_update
         self.gae_lambda = gae_lambda
         self.clip_thr = clip_thr
         self.epochs = epochs
+        self.mean = mean
+        self.max = max
 
     def step(self, new_position: np.ndarray) -> Tuple[Action, float , float]:
         self.position = new_position
-        state = Tensor(new_position)[None,:]
+        state = Tensor((new_position - self.mean)/self.max)[None,:]
         self.actor.eval()
         self.critic.eval()
         distribution: Categorical = self.actor(state)
@@ -73,6 +77,9 @@ class ProximalPolicyOptimization(Agent):
                 self.actor_optimizer.zero_grad()
                 self.critic_optimizer.zero_grad()
                 indices , states, actions, log_probs, values, rewards, dones = self.memory.sample(self.device)
+                states = states - states.mean(dim=0)
+                if states.max() != 0:
+                    states/states.max()
                 distribution:Categorical = self.actor(states)
                 critic_values = torch.squeeze(self.critic(states))
                 new_log_probs = distribution.log_prob(actions)
@@ -94,6 +101,9 @@ class ProximalPolicyOptimization(Agent):
     
     def get_q(self , positions:np.ndarray) -> np.ndarray:
         self.actor.eval()
+        positions = positions.astype(np.float32)
+        positions -= positions.mean(axis=0)
+        positions /= positions.max()
         return self.actor(Tensor(positions ,device=self.device)).probs.detach().cpu().numpy() * 10
     
     def save_models(self , path) -> None:

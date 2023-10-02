@@ -3,8 +3,9 @@ from argparse import ArgumentParser
 import numpy as np
 
 from agents.ppo import ProximalPolicyOptimization
-from environments.grid_world_with_local_optimums import \
-    LocalUptimumGridWorld as GridWorld
+from environments.grid_world_with_local_optimums import (
+    LocalUptimumGridWorld as GridWorld,
+)
 from trainer.base_trainer import BaseTrainer
 
 
@@ -16,9 +17,11 @@ def main():
     agent = ProximalPolicyOptimization(
         start_position=np.array([0, 0]),
         world_map_size=environment.world.shape,
-        batch_size=10,
-        epochs=40
-        # discount_rate=0.99, 
+        batch_size=40,
+        mean=environment.all_positions.mean(axis=0),
+        max=environment.all_positions.max(),
+        epochs=5
+        # discount_rate=0.99,
         # gae_lambda=0.95
     )
     trainer = BaseTrainer(agent, environment, args.timesteps)

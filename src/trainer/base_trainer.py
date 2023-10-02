@@ -44,7 +44,7 @@ class BaseTrainer:
                 self.current_timestep += 1
                 episode_timestep += 1
                 current_return += reward
-                if len(self.agent.memory.items) >= int(4* self.agent.memory.batch_size):
+                if len(self.agent.memory.items) >= int(2* self.agent.memory.batch_size):
                     self.agent.learn()
             if (current_return/episode_timestep) > best_average_return:
                 best_average_return = current_return
