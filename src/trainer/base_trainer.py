@@ -33,8 +33,8 @@ class BaseTrainer:
             while not is_done:
                 logging.getLogger().log(logging.INFO ,f"timestep:{self.current_timestep}")
                 action , prob , value = self.agent.step(position)
-                new_position , reward , is_done , _ , _ = self.environment.step(self.agent , self.maximum_timesteps)
-                self.agent.memory.append(new_position , prob , value , action , reward , is_done)
+                position , reward , is_done , _ , _ = self.environment.step(self.agent , self.maximum_timesteps)
+                self.agent.memory.append(self.agent.position , prob , value , action , reward , is_done)
                 if self.verbose:
                     self.environment.render(self.agent)
                 self.current_timestep += 1

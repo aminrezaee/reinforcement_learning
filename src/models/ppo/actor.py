@@ -1,5 +1,6 @@
 from torch.distributions import Categorical
 from torch.nn import BatchNorm1d, Linear, ReLU, Sequential, Softmax
+from torch import Tensor
 
 from ..base_model import BaseModel
 
@@ -18,6 +19,6 @@ class Actor(BaseModel):
         )
         self.to(device)
         
-    def forward(self, state) -> Categorical:
+    def forward(self, state:Tensor) -> Categorical:
         actions =  self.network(state)
         return Categorical(actions)

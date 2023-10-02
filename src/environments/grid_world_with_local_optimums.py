@@ -53,10 +53,10 @@ class LocalUptimumGridWorld(GridWorld):
         agent.q[y,x] = current_q
         world_copy = self.world.copy()
         world_copy[x, y] = agent_color
-        q_world = agent.q.copy()
+        q_world = np.round(agent.q.copy() , decimals=1)
         for i in range(len(q_world)):
             for j in range(len(q_world[0])):
-                qualities = list(q_world[i][j].astype(np.int64).astype(str))
+                qualities = list(q_world[i][j].astype(str))
                 delimiter = '   '
                 texts = delimiter.join(qualities[:2]) , delimiter.join(qualities[2:])
                 self.ax.text(i - 0.5, j, f"{texts[0]} \n{texts[1]}", fontdict={"size": 20} , verticalalignment='center')

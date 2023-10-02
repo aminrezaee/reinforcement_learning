@@ -62,14 +62,12 @@ class ProximalPolicyOptimization(Agent):
             for k in range(t , int(len(rewards) - 1)):
                 a_t += discount * (rewards[k] + self.discount_rate * values[int(k+1) *(1-int(dones[k]))]) - values[k]
                 discount *= (self.discount_rate * self.gae_lambda)
-        advantages[t] = a_t
-
-        for _ in self.iterations_per_update:
+            advantages[t] = a_t
+        advantages = Tensor(advantages , device= self.device)
+        for _ in range(self.iterations_per_update):
             self.actor_optimizer.zero_grad()
             self.critic_optimizer.zero_grad()
-            indices , states, actions, log_probs, values, rewards, dones = self.memory.sample()
-            states = Tensor(states , device= self.device)
-            actions = Tensor(actions , device= self.device)
+            indices , states, actions, log_probs, values, rewards, dones = self.memory.sample(self.device)
             distribution:Categorical = self.actor(states)
             critic_values = torch.squeeze(self.critic(states))
             new_log_probs = distribution.log_prob(actions)
@@ -87,6 +85,10 @@ class ProximalPolicyOptimization(Agent):
             self.actor_optimizer.step()
             self.critic_optimizer.step()
         return
+    
+    def get_q(self) -> np.ndarray:
+        self.actor.eval()
+        return self.actor(Tensor(self.position[None , :] ,device=self.device)).probs.detach().cpu().numpy()
     
     def save_models(self , path) -> None:
         torch.save(self.actor.state_dict(),f"{path}/actor.pt")
