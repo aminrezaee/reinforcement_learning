@@ -9,13 +9,13 @@ class Actor(BaseModel):
     def __init__(self, state_size: int, action_size: int, device="cpu") -> None:
         super().__init__(state_size, action_size, 1, device)
         self.network = Sequential(
-            BatchNorm1d(state_size) ,
+            # BatchNorm1d(state_size) ,
             Linear(state_size , 128) , 
             ReLU() , 
             Linear(128 , 256) , 
             ReLU() , 
             Linear(256 , action_size) , 
-            Softmax(dim=0)
+            Softmax(dim=-1)
         )
         self.to(device)
         

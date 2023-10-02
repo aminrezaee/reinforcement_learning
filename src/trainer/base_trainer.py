@@ -23,7 +23,11 @@ class BaseTrainer:
     def train(self):
         reward = 0
         reward_sum = 0
-        logging.getLogger().setLevel(logging.INFO)
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        logger.addHandler(console_handler)
         best_average_return = -np.inf
         while self.current_timestep < self.maximum_timesteps:
             is_done = False
@@ -40,14 +44,14 @@ class BaseTrainer:
                 self.current_timestep += 1
                 episode_timestep += 1
                 current_return += reward
-                if self.current_timestep % self.agent.memory.batch_size == 0:
+                if len(self.agent.memory.items) >= int(4* self.agent.memory.batch_size):
                     self.agent.learn()
             if (current_return/episode_timestep) > best_average_return:
                 best_average_return = current_return
                 self.agent.save_models(f"{self.environment.output_path}/models")
             if is_done:
                 reward_sum += reward 
-            self.agent.memory.reset()
+                # self.agent.memory.reset()
         if self.verbose:
             self.environment.create_video('world')
         return

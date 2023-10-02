@@ -12,11 +12,14 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--timesteps", "-t", default=2000, type=int)
     args = parser.parse_args()
-    environment = GridWorld((10, 10), output_path="./../outputs")
+    environment = GridWorld((6, 6), output_path="./../outputs")
     agent = ProximalPolicyOptimization(
         start_position=np.array([0, 0]),
         world_map_size=environment.world.shape,
-        batch_size=20,
+        batch_size=10,
+        epochs=40
+        # discount_rate=0.99, 
+        # gae_lambda=0.95
     )
     trainer = BaseTrainer(agent, environment, args.timesteps)
     trainer.train()

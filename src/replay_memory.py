@@ -23,7 +23,8 @@ class ReplayMemory:
     items:List[MemoryItem] = field(default_factory=list)
 
     def sample(self , device:str):
-        indices = torch.randperm(len(self.items))[: min(len(self.items), self.batch_size)]
+        first_index = torch.randint(low=0 , high=int(len(self.items) - self.batch_size + 1) , size = (1,))
+        indices = [int(first_index + i) for i in range(self.batch_size)]
         return (
             indices,
             Tensor([self.items[i].state for i in indices] , device=device),
@@ -36,6 +37,7 @@ class ReplayMemory:
 
     def append(self, state:np.ndarray, log_prob:float, value:float, action:Action, reward:float, done:bool):
         self.items.append(MemoryItem(state , log_prob , value , action , reward , done))
+        self.items = self.items[-200:]
         
     def reset(self):
         self.items:List[MemoryItem] = []

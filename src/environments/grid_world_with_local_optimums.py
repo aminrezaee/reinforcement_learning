@@ -13,6 +13,11 @@ class LocalUptimumGridWorld(GridWorld):
     def __init__(self, size, output_path: str, seed=0, redo=True) -> None:
         super().__init__(size, output_path, seed, redo)
         self.current_timestep_in_episode = 0
+        y_positions = np.arange(size[0])
+        x_positions = np.arange(size[1])
+        yy , xx = np.meshgrid(y_positions, x_positions)
+        map_array = np.stack((xx, yy), axis=-1)
+        self.all_positions = map_array.reshape(-1,2)
 
     def reset(self):
         np.random.seed(self.seed)
@@ -49,8 +54,8 @@ class LocalUptimumGridWorld(GridWorld):
 
     def render_world(self, agent: Agent , agent_color:int) -> None:
         x, y = int(agent.position[0]), int(agent.position[1])
-        current_q = agent.get_q()[0]
-        agent.q[y,x] = current_q
+        current_qs = agent.get_q(self.all_positions)
+        agent.q[self.all_positions[: , 0] , self.all_positions[:,1] ] = current_qs
         world_copy = self.world.copy()
         world_copy[x, y] = agent_color
         q_world = np.round(agent.q.copy() , decimals=1)
