@@ -17,7 +17,7 @@ def main():
     agent = ProximalPolicyOptimization(
         start_position=np.array([0, 0]),
         world_map_size=environment.world.shape,
-        batch_size=40,
+        batch_size=10,
         mean=environment.all_positions.mean(axis=0),
         max=environment.all_positions.max(),
         epochs=5, 

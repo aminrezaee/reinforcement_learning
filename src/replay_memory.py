@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import torch
 from torch import Tensor
-import scipy
+from scipy.signal import lfilter
 from action import Action
 
 
@@ -24,7 +24,7 @@ class ReplayMemory:
     items:List[MemoryItem] = field(default_factory=list)
 
     def sample(self , device:str):
-        first_index = torch.randint(low=0 , high=int(len(self.items) - self.batch_size + 1) , size = (1,))
+        first_index = torch.randint(low=0 , high=int(len(self.items) - self.batch_size) , size = (1,))
         indices = [int(first_index + i) for i in range(self.batch_size)]
         return (
             indices,
@@ -51,12 +51,12 @@ class ReplayMemory:
         values = np.array([item.value for item in self.items])
         deltas = rewards[:-1] + gamma * values[1:] - values[:-1]
         discount_coefficient = gamma * lamda
-        advantages = scipy.signal.lfilter([1], [1, float(-discount_coefficient)], deltas[::-1], axis=0)[::-1]
+        advantages = lfilter([1], [1, float(-discount_coefficient)], deltas[::-1], axis=0)[::-1]
         mean = np.mean(advantages , axis=0)
         std = np.std(advantages , axis=0)
         advantages = (advantages - mean)/std
 
-        for i in range(len(self.items)):
+        for i in range(len(advantages)):
             self.items[i].advantage = advantages[i]
         return
         

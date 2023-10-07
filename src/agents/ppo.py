@@ -65,8 +65,8 @@ class ProximalPolicyOptimization(Agent):
             losses = []
             for iter in range(self.iterations_per_update):
                 indices , states, actions, log_probs, values, rewards, dones , advantages = self.memory.sample(self.device)
-                states = states - states.mean(dim=0)
-                states = states/torch.std(states , dim=0)
+                # states = states - states.mean(dim=0)
+                # states = states/torch.std(states , dim=0)
                 distribution:Categorical = self.actor(states)
                 critic_values = torch.squeeze(self.critic(states))
                 new_log_probs = distribution.log_prob(actions)
