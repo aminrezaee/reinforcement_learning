@@ -26,7 +26,7 @@ class ProximalPolicyOptimization(Agent):
         epsilon=0.05,
         alpha=0.1,
         discount_rate=0.8,
-        iterations_per_update: int = 20,
+        iterations_per_update: int = 50,
         gae_lambda:float = 0.95,
         clip_thr:float = 0.2 ,
         epochs:int=3,
