@@ -17,13 +17,14 @@ def main():
     agent = ProximalPolicyOptimization(
         start_position=np.array([0, 0]),
         world_map_size=environment.world.shape,
-        batch_size=10,
+        batch_size=30,
         mean=environment.all_positions.mean(axis=0),
         max=environment.all_positions.max(),
-        epochs=5, 
-        clip_thr=0.02
-        # discount_rate=0.99,
-        # gae_lambda=0.95
+        iterations_per_update=40,
+        epochs=20, 
+        clip_thr=0.1,
+        discount_rate=0.99,
+        gae_lambda=0.95
     )
     trainer = BaseTrainer(agent, environment, args.timesteps)
     trainer.train()
