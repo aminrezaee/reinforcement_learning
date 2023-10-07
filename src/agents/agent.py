@@ -69,4 +69,13 @@ class Agent:
         reward: float,
         done: bool,
     ) -> None:
+        state = self.get_state(state)
         self.memory.append(state, prob, value, action, reward, done)
+
+    def get_one_hot(self, index, length):
+        onehot = np.zeros(length).astype(np.int64)
+        onehot[int(index)] = 1
+        return onehot
+    
+    def get_state(self, position):
+        return np.concatenate((self.get_one_hot(position[0] , self.world_map_size[0]),self.get_one_hot(position[1] , self.world_map_size[1])))

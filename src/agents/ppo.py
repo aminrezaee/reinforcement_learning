@@ -33,8 +33,8 @@ class ProximalPolicyOptimization(Agent):
         device:str = 'cpu'
     ) -> None:
         super().__init__(start_position, world_map_size , batch_size , epsilon, alpha, discount_rate , device)
-        self.actor = Actor(len(start_position), len(Action.get_all_actions()) , device)
-        self.critic = Critic(len(start_position), len(Action.get_all_actions()) , device)
+        self.actor = Actor(len(self.get_state(start_position)), len(Action.get_all_actions()) , device)
+        self.critic = Critic(len(self.get_state(start_position)), len(Action.get_all_actions()) , device)
         self.actor_optimizer = Adam(params=self.actor.parameters() , lr=1e-4)
         self.critic_optimizer = Adam(params=self.critic.parameters() , lr=1e-4)
         self.iterations_per_update = iterations_per_update
@@ -46,7 +46,7 @@ class ProximalPolicyOptimization(Agent):
 
     def step(self, new_position: np.ndarray) -> Tuple[Action, float , float]:
         self.position = new_position
-        state = Tensor((new_position - self.mean)/self.max)[None,:]
+        state = Tensor(self.get_state(new_position))[None,:]
         self.actor.eval()
         self.critic.eval()
         distribution: Categorical = self.actor(state)
@@ -59,52 +59,42 @@ class ProximalPolicyOptimization(Agent):
         return self.action , log_prob , value
 
     def learn(self) -> None:
-        items:List[MemoryItem] = list(self.memory.items)
-        advantages =  np.zeros(len(items) , dtype=np.float32)
-        values = Tensor([items[i].value for i in range(len(items))])
-        rewards = Tensor([items[i].reward for i in range(len(items))])
-        dones = Tensor([items[i].done for i in range(len(items))])
-        for t in range(int(len(rewards)-1)):
-            discount = 1
-            a_t = 0
-            for k in range(t , int(len(rewards) - 1)):
-                a_t += discount * (rewards[k] + self.discount_rate * values[int(k+1) *(1-int(dones[k]))]) - values[k]
-                discount *= (self.discount_rate * self.gae_lambda)
-            advantages[t] = a_t
-        advantages = Tensor(advantages , device= self.device)
         for _ in range(self.epochs):
+            self.actor_optimizer.zero_grad()
+            self.critic_optimizer.zero_grad()
+            losses = []
             for iter in range(self.iterations_per_update):
-                self.actor_optimizer.zero_grad()
-                self.critic_optimizer.zero_grad()
-                indices , states, actions, log_probs, values, rewards, dones = self.memory.sample(self.device)
+                indices , states, actions, log_probs, values, rewards, dones , advantages = self.memory.sample(self.device)
                 states = states - states.mean(dim=0)
-                if states.max() != 0:
-                    states/states.max()
+                states = states/torch.std(states , dim=0)
                 distribution:Categorical = self.actor(states)
                 critic_values = torch.squeeze(self.critic(states))
                 new_log_probs = distribution.log_prob(actions)
                 prob_ratio = new_log_probs.exp()/log_probs.exp()
-                weighted_probs = advantages[indices] * prob_ratio
-                clipped_probs = torch.clamp(prob_ratio , 1-self.clip_thr , 1+ self.clip_thr) * advantages[indices]
+                weighted_probs = advantages * prob_ratio
+                clipped_probs = torch.clamp(prob_ratio , 1-self.clip_thr , 1+ self.clip_thr) * advantages
                 actor_loss = -torch.min(weighted_probs , clipped_probs).mean()
-                returns = advantages[indices] + values
+                returns = advantages + values
                 critic_loss = (returns - critic_values) ** 2
                 critic_loss = critic_loss.mean()
                 total_loss = actor_loss + 0.5 * critic_loss
-                total_loss.backward()
+                losses.append(total_loss)
                 loss_text = f"loss:{round(total_loss.item() , ndigits=3)}"
                 logging.getLogger().log(logging.INFO, loss_text)
-                self.actor_optimizer.step()
-                self.critic_optimizer.step()
+            losses = sum(losses)/len(losses)
+            losses.mean().backward()
+            self.actor_optimizer.step()
+            self.critic_optimizer.step()
         self.memory.reset()
         return
     
     def get_q(self , positions:np.ndarray) -> np.ndarray:
         self.actor.eval()
-        positions = positions.astype(np.float32)
-        positions -= positions.mean(axis=0)
-        positions /= positions.max()
-        return self.actor(Tensor(positions ,device=self.device)).probs.detach().cpu().numpy() * 10
+        if len(positions.shape) == 1:
+            state = self.get_state(positions)
+        else:
+            state = np.array([self.get_state(position) for position in positions])
+        return self.actor(Tensor(state ,device=self.device)).probs.detach().cpu().numpy() * 10
     
     def save_models(self , path) -> None:
         torch.save(self.actor.state_dict(),f"{path}/actor.pt")

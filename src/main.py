@@ -20,7 +20,8 @@ def main():
         batch_size=40,
         mean=environment.all_positions.mean(axis=0),
         max=environment.all_positions.max(),
-        epochs=5
+        epochs=5, 
+        clip_thr=0.02
         # discount_rate=0.99,
         # gae_lambda=0.95
     )

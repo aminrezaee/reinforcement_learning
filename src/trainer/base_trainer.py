@@ -36,15 +36,16 @@ class BaseTrainer:
             episode_timestep = 0
             while not is_done:
                 logging.getLogger().log(logging.INFO ,f"timestep:{self.current_timestep}")
-                action , prob , value = self.agent.step(position)
+                action , log_prob , value = self.agent.step(position)
                 position , reward , is_done , _ , _ = self.environment.step(self.agent , self.maximum_timesteps)
-                self.agent.memory.append(self.agent.position , prob , value , action , reward , is_done)
+                self.agent.memory.append(self.agent.get_state(self.agent.position) , log_prob , value , action , reward , is_done)
                 if self.verbose:
                     self.environment.render(self.agent)
                 self.current_timestep += 1
                 episode_timestep += 1
                 current_return += reward
                 if len(self.agent.memory.items) >= int(2* self.agent.memory.batch_size):
+                    self.agent.memory.set_advantages(self.agent.discount_rate , self.agent.gae_lambda)
                     self.agent.learn()
             if (current_return/episode_timestep) > best_average_return:
                 best_average_return = current_return
