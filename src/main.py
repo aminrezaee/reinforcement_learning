@@ -22,7 +22,7 @@ def main():
         max=environment.all_positions.max(),
         iterations_per_update=40,
         epochs=20, 
-        clip_thr=0.1,
+        clip_thr=0.05,
         discount_rate=0.99,
         gae_lambda=0.95
     )
